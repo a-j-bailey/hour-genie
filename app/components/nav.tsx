@@ -8,8 +8,15 @@ export function Nav() {
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
+    try {
+      await signOut();
+      // Use window.location for a full page reload to ensure clean state
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Error signing out:", error);
+      // Fallback navigation
+      navigate("/");
+    }
   };
 
   return (

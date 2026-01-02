@@ -35,18 +35,35 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { error } = isSignUp
-        ? await signUp(email, password)
-        : await signIn(email, password);
-
-      if (error) {
-        setError(error.message);
+      if (isSignUp) {
+        const { error, session } = await signUp(email, password);
+        
+        if (error) {
+          setError(error.message);
+          setLoading(false);
+        } else if (session) {
+          // User is automatically authenticated (email confirmation disabled)
+          // The useEffect will catch the user state change and redirect
+          // But we can also navigate immediately since we have a session
+          navigate("/dashboard");
+        } else {
+          // Email confirmation required - show message
+          setError("Please check your email to confirm your account before signing in.");
+          setLoading(false);
+        }
       } else {
-        navigate("/dashboard");
+        const { error } = await signIn(email, password);
+        
+        if (error) {
+          setError(error.message);
+          setLoading(false);
+        } else {
+          // Sign in successful - useEffect will handle redirect
+          navigate("/dashboard");
+        }
       }
     } catch (err) {
       setError("An unexpected error occurred");
-    } finally {
       setLoading(false);
     }
   };

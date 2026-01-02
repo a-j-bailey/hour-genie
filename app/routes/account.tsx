@@ -87,7 +87,8 @@ function AccountContent() {
       // For now, we'll sign out and show a message
       // In production, you should implement account deletion via your API
       await signOut();
-      navigate("/");
+      // Use window.location for a full page reload to ensure clean state
+      window.location.href = "/";
       // TODO: Implement account deletion endpoint in Cloudflare Worker
       // that uses Supabase admin API to delete the user
     } catch (err) {
