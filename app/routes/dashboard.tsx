@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useAuth } from "~/lib/use-auth";
+import { useSidebar } from "~/lib/sidebar-context";
+import { cn } from "~/lib/utils";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -36,6 +38,7 @@ const DAYS_OF_WEEK = [
 
 function DashboardContent() {
   const { user, session } = useAuth();
+  const { isCollapsed, isMobile } = useSidebar();
   const [hours, setHours] = useState<OperatingHours[]>(
     DAYS_OF_WEEK.map((day) => ({
       day_of_week: day.value,
@@ -151,9 +154,15 @@ function DashboardContent() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex">
           <Nav />
-          <div className="flex-1 flex items-center justify-center">
+          <div
+            className={cn(
+              "flex-1 flex items-center justify-center transition-all duration-300",
+              isMobile ? "ml-0 pt-20" : "",
+              !isMobile && (isCollapsed ? "ml-16" : "ml-64")
+            )}
+          >
             <div>Loading...</div>
           </div>
         </div>
@@ -163,9 +172,15 @@ function DashboardContent() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex">
         <Nav />
-        <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
+        <main
+          className={cn(
+            "flex-1 container mx-auto px-4 max-w-4xl transition-all duration-300",
+            isMobile ? "ml-0 pt-20" : "py-8",
+            !isMobile && (isCollapsed ? "ml-16" : "ml-64")
+          )}
+        >
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold">Operating Hours</h1>

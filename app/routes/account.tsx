@@ -21,6 +21,8 @@ import {
 import { useAuth } from "~/lib/use-auth";
 import { supabase } from "~/lib/supabase/client";
 import { useNavigate } from "react-router";
+import { useSidebar } from "~/lib/sidebar-context";
+import { cn } from "~/lib/utils";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -32,6 +34,7 @@ export function meta({}: Route.MetaArgs) {
 function AccountContent() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { isCollapsed, isMobile } = useSidebar();
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
@@ -99,9 +102,15 @@ function AccountContent() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex">
         <Nav />
-        <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
+        <main
+          className={cn(
+            "flex-1 container mx-auto px-4 max-w-4xl transition-all duration-300",
+            isMobile ? "ml-0 pt-20" : "py-8",
+            !isMobile && (isCollapsed ? "ml-16" : "ml-64")
+          )}
+        >
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold">Account Settings</h1>
