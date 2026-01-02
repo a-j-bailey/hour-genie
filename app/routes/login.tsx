@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router";
 import type { Route } from "./+types/login";
 import { useAuth } from "~/lib/use-auth";
@@ -6,6 +6,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import { Check } from "lucide-react";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -17,6 +18,7 @@ export function meta({}: Route.MetaArgs) {
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -29,6 +31,22 @@ export default function Login() {
     }
   }, [user, navigate]);
 
+  // Validate form
+  const isFormValid = useMemo(() => {
+    if (isSignUp) {
+      return (
+        email.trim() !== "" &&
+        password.length >= 6 &&
+        confirmPassword.length >= 6 &&
+        password === confirmPassword
+      );
+    } else {
+      return email.trim() !== "" && password.length >= 6;
+    }
+  }, [email, password, confirmPassword, isSignUp]);
+
+  const passwordsMatch = password.length >= 6 && confirmPassword.length >= 6 && password === confirmPassword;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -36,6 +54,12 @@ export default function Login() {
 
     try {
       if (isSignUp) {
+        // Validate that passwords match
+        if (password !== confirmPassword) {
+          setError("Passwords do not match");
+          setLoading(false);
+          return;
+        }
         const { error, session } = await signUp(email, password);
         
         if (error) {
@@ -105,12 +129,31 @@ export default function Login() {
                 minLength={6}
               />
             </div>
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className={passwordsMatch ? "pr-9" : ""}
+                  />
+                  {passwordsMatch && (
+                    <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-600 dark:text-green-500" />
+                  )}
+                </div>
+              </div>
+            )}
             {error && (
               <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
                 {error}
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading || !isFormValid}>
               {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
             </Button>
           </form>
@@ -120,6 +163,7 @@ export default function Login() {
               onClick={() => {
                 setIsSignUp(!isSignUp);
                 setError(null);
+                setConfirmPassword("");
               }}
               className="text-primary hover:underline"
             >
