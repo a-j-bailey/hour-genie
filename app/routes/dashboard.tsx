@@ -6,9 +6,18 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { useAuth } from "~/lib/use-auth";
 import { useSidebar } from "~/lib/sidebar-context";
-import { cn } from "~/lib/utils";
+import { cn, formatPhoneNumber } from "~/lib/utils";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -17,13 +26,40 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-interface OperatingHours {
-  id?: string;
+interface DayHours {
   day_of_week: number;
-  day_name: string;
   is_open: boolean;
-  open_time: string;
-  close_time: string;
+  is_open_24_7: boolean;
+  open_time: string | null;
+  close_time: string | null;
+}
+
+interface Business {
+  id: string;
+  user_id?: string;
+  name: string;
+  address?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  default_hours: DayHours[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface HoursOverride {
+  id: string;
+  business_id: string;
+  start_date: string;
+  end_date: string;
+  day_of_week: number;
+  is_open: boolean;
+  is_open_24_7: boolean;
+  open_time: string | null;
+  close_time: string | null;
+  created_at?: string;
+  created_by?: string;
+  updated_at?: string;
+  updated_by?: string;
 }
 
 const DAYS_OF_WEEK = [
@@ -36,37 +72,64 @@ const DAYS_OF_WEEK = [
   { value: 6, name: "Saturday" },
 ];
 
+function createDefaultHoursStructure(): DayHours[] {
+  return DAYS_OF_WEEK.map((day) => ({
+    day_of_week: day.value,
+    is_open: false,
+    is_open_24_7: false,
+    open_time: null,
+    close_time: null,
+  }));
+}
+
 function DashboardContent() {
   const { user, session } = useAuth();
   const { isCollapsed, isMobile } = useSidebar();
-  const [hours, setHours] = useState<OperatingHours[]>(
-    DAYS_OF_WEEK.map((day) => ({
-      day_of_week: day.value,
-      day_name: day.name,
-      is_open: day.value !== 0 && day.value !== 6, // Default: closed on weekends
-      open_time: "09:00",
-      close_time: "17:00",
-    }))
-  );
+  const apiUrl = import.meta.env.VITE_API_URL || "";
+
+  // State
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+  const [defaultHours, setDefaultHours] = useState<DayHours[]>(createDefaultHoursStructure());
+  const [overrides, setOverrides] = useState<HoursOverride[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const apiUrl = import.meta.env.VITE_API_URL || "";
+  // Dialog states
+  const [createBusinessDialogOpen, setCreateBusinessDialogOpen] = useState(false);
+  const [createOverrideDialogOpen, setCreateOverrideDialogOpen] = useState(false);
+  const [newBusinessName, setNewBusinessName] = useState("");
+  const [newBusinessAddress, setNewBusinessAddress] = useState("");
+  const [newBusinessEmail, setNewBusinessEmail] = useState("");
+  const [newBusinessPhone, setNewBusinessPhone] = useState("");
+  const [overrideStartDate, setOverrideStartDate] = useState("");
+  const [overrideEndDate, setOverrideEndDate] = useState("");
+  const [overrideDays, setOverrideDays] = useState<DayHours[]>(createDefaultHoursStructure());
 
   useEffect(() => {
-    fetchHours();
-  }, []);
+    if (session?.access_token) {
+      fetchBusinesses();
+    }
+  }, [session]);
 
-  const fetchHours = async () => {
+  useEffect(() => {
+    if (selectedBusinessId) {
+      fetchBusiness(selectedBusinessId);
+      fetchOverrides(selectedBusinessId);
+    }
+  }, [selectedBusinessId, session]);
+
+  const fetchBusinesses = async () => {
     if (!session?.access_token) {
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch(`${apiUrl}/api/operating-hours`, {
+      const response = await fetch(`${apiUrl}/api/businesses`, {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
@@ -74,81 +137,245 @@ function DashboardContent() {
 
       if (response.ok) {
         const data = await response.json();
-        if (data && data.length > 0) {
-          // Merge fetched hours with default structure
-          const fetchedHoursMap = new Map(
-            data.map((h: OperatingHours) => [h.day_of_week, h])
-          );
-          const updatedHours: OperatingHours[] = DAYS_OF_WEEK.map((day) => {
-            const fetched = fetchedHoursMap.get(day.value) as OperatingHours | undefined;
-            if (fetched) {
-              return {
-                id: fetched.id,
-                day_of_week: fetched.day_of_week,
-                day_name: day.name,
-                is_open: fetched.is_open,
-                open_time: fetched.open_time,
-                close_time: fetched.close_time,
-              };
-            }
-            return {
-              day_of_week: day.value,
-              day_name: day.name,
-              is_open: false,
-              open_time: "09:00",
-              close_time: "17:00",
-            };
-          });
-          setHours(updatedHours);
+        setBusinesses(data || []);
+        if (data && data.length > 0 && !selectedBusinessId) {
+          setSelectedBusinessId(data[0].id);
         }
       }
     } catch (err) {
-      console.error("Error fetching hours:", err);
+      console.error("Error fetching businesses:", err);
+      setError("Failed to load businesses");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSave = async () => {
-    if (!session?.access_token) {
-      setError("Not authenticated");
+  const fetchBusiness = async (businessId: string) => {
+    if (!session?.access_token) return;
+
+    try {
+      const response = await fetch(`${apiUrl}/api/businesses/${businessId}`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedBusiness(data);
+        if (data.default_hours && Array.isArray(data.default_hours)) {
+          setDefaultHours(data.default_hours);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching business:", err);
+      setError("Failed to load business details");
+    }
+  };
+
+  const fetchOverrides = async (businessId: string) => {
+    if (!session?.access_token) return;
+
+    try {
+      const response = await fetch(`${apiUrl}/api/businesses/${businessId}/hours-overrides`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setOverrides(data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching overrides:", err);
+    }
+  };
+
+  const handleCreateBusiness = async () => {
+    if (!session?.access_token || !newBusinessName.trim()) {
+      setError("Business name is required");
       return;
     }
 
     setSaving(true);
     setError(null);
-    setSuccess(false);
 
     try {
-      const response = await fetch(`${apiUrl}/api/operating-hours`, {
+      const response = await fetch(`${apiUrl}/api/businesses`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ hours }),
+        body: JSON.stringify({
+          name: newBusinessName,
+          address: newBusinessAddress || null,
+          email: newBusinessEmail || null,
+          phone: newBusinessPhone || null,
+          default_hours: createDefaultHoursStructure(),
+        }),
       });
 
       if (response.ok) {
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
+        const data = await response.json();
+        setBusinesses([...businesses, data]);
+        setSelectedBusinessId(data.id);
+        setCreateBusinessDialogOpen(false);
+        setNewBusinessName("");
+        setNewBusinessAddress("");
+        setNewBusinessEmail("");
+        setNewBusinessPhone("");
+        setSuccess("Business created successfully!");
+        setTimeout(() => setSuccess(null), 3000);
       } else {
         const errorData = await response.json();
-        setError(errorData.error || "Failed to save operating hours");
+        setError(errorData.error || "Failed to create business");
       }
     } catch (err) {
-      setError("Failed to save operating hours. Please try again.");
+      setError("Failed to create business. Please try again.");
     } finally {
       setSaving(false);
     }
   };
 
-  const updateDay = (dayIndex: number, updates: Partial<OperatingHours>) => {
-    setHours((prev) =>
-      prev.map((day) =>
-        day.day_of_week === dayIndex ? { ...day, ...updates } : day
-      )
+  const handleUpdateDefaultHours = async () => {
+    if (!session?.access_token || !selectedBusinessId) {
+      setError("No business selected");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await fetch(`${apiUrl}/api/businesses/${selectedBusinessId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          default_hours: defaultHours,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedBusiness(data);
+        setSuccess("Default hours updated successfully!");
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to update default hours");
+      }
+    } catch (err) {
+      setError("Failed to update default hours. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCreateOverride = async () => {
+    if (!session?.access_token || !selectedBusinessId) {
+      setError("No business selected");
+      return;
+    }
+
+    if (!overrideStartDate || !overrideEndDate) {
+      setError("Start date and end date are required");
+      return;
+    }
+
+    // Filter to only days that are configured (is_open = true)
+    const daysToSave = overrideDays.filter((day) => day.is_open);
+
+    if (daysToSave.length === 0) {
+      setError("At least one day must be configured");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${apiUrl}/api/businesses/${selectedBusinessId}/hours-overrides`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          start_date: overrideStartDate,
+          end_date: overrideEndDate,
+          days: daysToSave,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setOverrides([...overrides, ...data]);
+        setCreateOverrideDialogOpen(false);
+        setOverrideStartDate("");
+        setOverrideEndDate("");
+        setOverrideDays(createDefaultHoursStructure());
+        setSuccess("Hours override created successfully!");
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to create override");
+      }
+    } catch (err) {
+      setError("Failed to create override. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteOverride = async (overrideId: string) => {
+    if (!session?.access_token) return;
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${apiUrl}/api/hours-overrides/${overrideId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.ok) {
+        setOverrides(overrides.filter((o) => o.id !== overrideId));
+        setSuccess("Override deleted successfully!");
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to delete override");
+      }
+    } catch (err) {
+      setError("Failed to delete override. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateDefaultDay = (dayIndex: number, updates: Partial<DayHours>) => {
+    setDefaultHours((prev) =>
+      prev.map((day) => (day.day_of_week === dayIndex ? { ...day, ...updates } : day))
     );
+  };
+
+  const updateOverrideDay = (dayIndex: number, updates: Partial<DayHours>) => {
+    setOverrideDays((prev) =>
+      prev.map((day) => (day.day_of_week === dayIndex ? { ...day, ...updates } : day))
+    );
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
   };
 
   if (loading) {
@@ -176,95 +403,428 @@ function DashboardContent() {
         <Nav />
         <main
           className={cn(
-            "flex-1 container mx-auto px-4 max-w-4xl transition-all duration-300",
+            "flex-1 container mx-auto px-4 max-w-6xl transition-all duration-300",
             isMobile ? "ml-0 pt-20" : "py-8",
             !isMobile && (isCollapsed ? "ml-16" : "ml-64")
           )}
         >
           <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold">Operating Hours</h1>
-              <p className="text-muted-foreground">
-                Set your business hours for each day of the week
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold">Dashboard</h1>
+                <p className="text-muted-foreground">Manage your business operating hours</p>
+              </div>
+              <Dialog open={createBusinessDialogOpen} onOpenChange={setCreateBusinessDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>Create Business</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create New Business</DialogTitle>
+                    <DialogDescription>
+                      Add a new business to manage operating hours
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="business-name">Business Name *</Label>
+                      <Input
+                        id="business-name"
+                        value={newBusinessName}
+                        onChange={(e) => setNewBusinessName(e.target.value)}
+                        placeholder="My Business"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="business-address">Address</Label>
+                      <Input
+                        id="business-address"
+                        value={newBusinessAddress}
+                        onChange={(e) => setNewBusinessAddress(e.target.value)}
+                        placeholder="123 Main St"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="business-email">Email</Label>
+                      <Input
+                        id="business-email"
+                        type="email"
+                        value={newBusinessEmail}
+                        onChange={(e) => setNewBusinessEmail(e.target.value)}
+                        placeholder="business@example.com"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="business-phone">Phone</Label>
+                      <Input
+                        id="business-phone"
+                        type="tel"
+                        value={newBusinessPhone}
+                        onChange={(e) => {
+                          const formatted = formatPhoneNumber(e.target.value);
+                          setNewBusinessPhone(formatted);
+                        }}
+                        placeholder="+1 (555) 123-4567"
+                        maxLength={17} // +1 (555) 123-4567
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setCreateBusinessDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button onClick={handleCreateBusiness} disabled={saving}>
+                      {saving ? "Creating..." : "Create Business"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
 
             {error && (
-              <div className="bg-destructive/10 text-destructive p-4 rounded-md">
-                {error}
-              </div>
+              <div className="bg-destructive/10 text-destructive p-4 rounded-md">{error}</div>
             )}
 
             {success && (
               <div className="bg-green-500/10 text-green-600 dark:text-green-400 p-4 rounded-md">
-                Operating hours saved successfully!
+                {success}
               </div>
             )}
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Weekly Schedule</CardTitle>
-                <CardDescription>
-                  Configure your operating hours for each day
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {hours.map((day) => (
-                  <div
-                    key={day.day_of_week}
-                    className="flex items-center gap-4 p-4 border rounded-lg"
-                  >
-                    <div className="w-24 font-medium">{day.day_name}</div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id={`day-${day.day_of_week}`}
-                        checked={day.is_open}
-                        onChange={(e) =>
-                          updateDay(day.day_of_week, { is_open: e.target.checked })
-                        }
-                        className="h-4 w-4"
-                      />
-                      <Label htmlFor={`day-${day.day_of_week}`}>Open</Label>
-                    </div>
-                    {day.is_open && (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor={`open-${day.day_of_week}`}>Open:</Label>
-                          <Input
-                            id={`open-${day.day_of_week}`}
-                            type="time"
-                            value={day.open_time}
-                            onChange={(e) =>
-                              updateDay(day.day_of_week, { open_time: e.target.value })
-                            }
-                            className="w-32"
-                          />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor={`close-${day.day_of_week}`}>Close:</Label>
-                          <Input
-                            id={`close-${day.day_of_week}`}
-                            type="time"
-                            value={day.close_time}
-                            onChange={(e) =>
-                              updateDay(day.day_of_week, { close_time: e.target.value })
-                            }
-                            className="w-32"
-                          />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            {businesses.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground mb-4">No businesses yet.</p>
+                  <Button onClick={() => setCreateBusinessDialogOpen(true)}>
+                    Create Your First Business
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {/* Business Selector */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Select Business</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <select
+                      value={selectedBusinessId || ""}
+                      onChange={(e) => setSelectedBusinessId(e.target.value)}
+                      className="w-full p-2 border rounded-md"
+                    >
+                      {businesses.map((business) => (
+                        <option key={business.id} value={business.id}>
+                          {business.name}
+                        </option>
+                      ))}
+                    </select>
+                  </CardContent>
+                </Card>
 
-            <div className="flex justify-end">
-              <Button onClick={handleSave} disabled={saving} size="lg">
-                {saving ? "Saving..." : "Save Operating Hours"}
-              </Button>
-            </div>
+                {selectedBusiness && (
+                  <>
+                    {/* Default Hours */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Default Operating Hours</CardTitle>
+                        <CardDescription>
+                          Configure default hours for {selectedBusiness.name}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {defaultHours.map((day) => {
+                          const dayInfo = DAYS_OF_WEEK.find((d) => d.value === day.day_of_week);
+                          return (
+                            <div
+                              key={day.day_of_week}
+                              className="flex items-center gap-4 p-4 border rounded-lg flex-wrap"
+                            >
+                              <div className="w-24 font-medium">{dayInfo?.name}</div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  id={`default-open-${day.day_of_week}`}
+                                  checked={day.is_open}
+                                  onChange={(e) =>
+                                    updateDefaultDay(day.day_of_week, {
+                                      is_open: e.target.checked,
+                                      is_open_24_7: e.target.checked ? day.is_open_24_7 : false,
+                                    })
+                                  }
+                                  className="h-4 w-4"
+                                />
+                                <Label htmlFor={`default-open-${day.day_of_week}`}>Open</Label>
+                              </div>
+                              {day.is_open && (
+                                <>
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="checkbox"
+                                      id={`default-24-7-${day.day_of_week}`}
+                                      checked={day.is_open_24_7}
+                                      onChange={(e) =>
+                                        updateDefaultDay(day.day_of_week, {
+                                          is_open_24_7: e.target.checked,
+                                        })
+                                      }
+                                      className="h-4 w-4"
+                                    />
+                                    <Label htmlFor={`default-24-7-${day.day_of_week}`}>24/7</Label>
+                                  </div>
+                                  {!day.is_open_24_7 && (
+                                    <>
+                                      <div className="flex items-center gap-2">
+                                        <Label htmlFor={`default-open-time-${day.day_of_week}`}>
+                                          Open:
+                                        </Label>
+                                        <Input
+                                          id={`default-open-time-${day.day_of_week}`}
+                                          type="time"
+                                          value={day.open_time || ""}
+                                          onChange={(e) =>
+                                            updateDefaultDay(day.day_of_week, {
+                                              open_time: e.target.value || null,
+                                            })
+                                          }
+                                          className="w-32"
+                                        />
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Label htmlFor={`default-close-time-${day.day_of_week}`}>
+                                          Close:
+                                        </Label>
+                                        <Input
+                                          id={`default-close-time-${day.day_of_week}`}
+                                          type="time"
+                                          value={day.close_time || ""}
+                                          onChange={(e) =>
+                                            updateDefaultDay(day.day_of_week, {
+                                              close_time: e.target.value || null,
+                                            })
+                                          }
+                                          className="w-32"
+                                        />
+                                      </div>
+                                    </>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </CardContent>
+                      <CardContent>
+                        <div className="flex justify-end">
+                          <Button onClick={handleUpdateDefaultHours} disabled={saving}>
+                            {saving ? "Saving..." : "Save Default Hours"}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Hours Overrides */}
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                          <CardTitle>Hours Overrides</CardTitle>
+                          <CardDescription>
+                            Temporary schedule changes that override default hours
+                          </CardDescription>
+                        </div>
+                        <Dialog
+                          open={createOverrideDialogOpen}
+                          onOpenChange={setCreateOverrideDialogOpen}
+                        >
+                          <DialogTrigger asChild>
+                            <Button>Create Override</Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Create Hours Override</DialogTitle>
+                              <DialogDescription>
+                                Set temporary hours for a date range
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="override-start-date">Start Date *</Label>
+                                  <Input
+                                    id="override-start-date"
+                                    type="date"
+                                    value={overrideStartDate}
+                                    onChange={(e) => setOverrideStartDate(e.target.value)}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="override-end-date">End Date *</Label>
+                                  <Input
+                                    id="override-end-date"
+                                    type="date"
+                                    value={overrideEndDate}
+                                    onChange={(e) => setOverrideEndDate(e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                              <div className="space-y-4">
+                                <Label>Configure Hours for Each Day:</Label>
+                                {overrideDays.map((day) => {
+                                  const dayInfo = DAYS_OF_WEEK.find((d) => d.value === day.day_of_week);
+                                  return (
+                                    <div
+                                      key={day.day_of_week}
+                                      className="flex items-center gap-4 p-4 border rounded-lg flex-wrap"
+                                    >
+                                      <div className="w-24 font-medium">{dayInfo?.name}</div>
+                                      <div className="flex items-center gap-2">
+                                        <input
+                                          type="checkbox"
+                                          id={`override-open-${day.day_of_week}`}
+                                          checked={day.is_open}
+                                          onChange={(e) =>
+                                            updateOverrideDay(day.day_of_week, {
+                                              is_open: e.target.checked,
+                                              is_open_24_7: e.target.checked
+                                                ? day.is_open_24_7
+                                                : false,
+                                            })
+                                          }
+                                          className="h-4 w-4"
+                                        />
+                                        <Label htmlFor={`override-open-${day.day_of_week}`}>
+                                          Open
+                                        </Label>
+                                      </div>
+                                      {day.is_open && (
+                                        <>
+                                          <div className="flex items-center gap-2">
+                                            <input
+                                              type="checkbox"
+                                              id={`override-24-7-${day.day_of_week}`}
+                                              checked={day.is_open_24_7}
+                                              onChange={(e) =>
+                                                updateOverrideDay(day.day_of_week, {
+                                                  is_open_24_7: e.target.checked,
+                                                })
+                                              }
+                                              className="h-4 w-4"
+                                            />
+                                            <Label htmlFor={`override-24-7-${day.day_of_week}`}>
+                                              24/7
+                                            </Label>
+                                          </div>
+                                          {!day.is_open_24_7 && (
+                                            <>
+                                              <div className="flex items-center gap-2">
+                                                <Label htmlFor={`override-open-time-${day.day_of_week}`}>
+                                                  Open:
+                                                </Label>
+                                                <Input
+                                                  id={`override-open-time-${day.day_of_week}`}
+                                                  type="time"
+                                                  value={day.open_time || ""}
+                                                  onChange={(e) =>
+                                                    updateOverrideDay(day.day_of_week, {
+                                                      open_time: e.target.value || null,
+                                                    })
+                                                  }
+                                                  className="w-32"
+                                                />
+                                              </div>
+                                              <div className="flex items-center gap-2">
+                                                <Label htmlFor={`override-close-time-${day.day_of_week}`}>
+                                                  Close:
+                                                </Label>
+                                                <Input
+                                                  id={`override-close-time-${day.day_of_week}`}
+                                                  type="time"
+                                                  value={day.close_time || ""}
+                                                  onChange={(e) =>
+                                                    updateOverrideDay(day.day_of_week, {
+                                                      close_time: e.target.value || null,
+                                                    })
+                                                  }
+                                                  className="w-32"
+                                                />
+                                              </div>
+                                            </>
+                                          )}
+                                        </>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <Button
+                                variant="outline"
+                                onClick={() => setCreateOverrideDialogOpen(false)}
+                              >
+                                Cancel
+                              </Button>
+                              <Button onClick={handleCreateOverride} disabled={saving}>
+                                {saving ? "Creating..." : "Create Override"}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </CardHeader>
+                      <CardContent>
+                        {overrides.length === 0 ? (
+                          <p className="text-muted-foreground text-center py-8">
+                            No overrides yet. Create one to override default hours for a specific date
+                            range.
+                          </p>
+                        ) : (
+                          <div className="space-y-4">
+                            {overrides.map((override) => {
+                              const dayInfo = DAYS_OF_WEEK.find((d) => d.value === override.day_of_week);
+                              return (
+                                <div
+                                  key={override.id}
+                                  className="flex items-center justify-between p-4 border rounded-lg"
+                                >
+                                  <div className="flex-1">
+                                    <div className="font-medium">
+                                      {dayInfo?.name} ({formatDate(override.start_date)} -{" "}
+                                      {formatDate(override.end_date)})
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">
+                                      {override.is_open ? (
+                                        override.is_open_24_7 ? (
+                                          "Open 24/7"
+                                        ) : (
+                                          `Open: ${override.open_time} - ${override.close_time}`
+                                        )
+                                      ) : (
+                                        "Closed"
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => handleDeleteOverride(override.id)}
+                                    disabled={saving}
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+              </>
+            )}
           </div>
         </main>
       </div>
@@ -275,4 +835,3 @@ function DashboardContent() {
 export default function Dashboard() {
   return <DashboardContent />;
 }
-

@@ -1,8 +1,10 @@
-// Note: These imports work in Cloudflare Workers environment
-// @ts-ignore
 import { createSupabaseClient } from "../utils/supabase";
-// @ts-ignore
 import { getAuthenticatedUser } from "../utils/auth";
+
+interface Env {
+  SUPABASE_URL: string;
+  SUPABASE_SERVICE_ROLE_KEY: string;
+}
 
 interface OperatingHours {
   id?: string;
@@ -18,7 +20,7 @@ interface OperatingHours {
 /**
  * Handle GET request - Fetch operating hours for authenticated user
  */
-export async function handleGet(request: Request): Promise<Response> {
+export async function handleGet(request: Request, env: Env): Promise<Response> {
   try {
     const user = await getAuthenticatedUser(request);
     
@@ -29,7 +31,7 @@ export async function handleGet(request: Request): Promise<Response> {
       );
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = createSupabaseClient(env);
     const { data, error } = await supabase
       .from("operating_hours")
       .select("*")
@@ -66,7 +68,7 @@ export async function handleGet(request: Request): Promise<Response> {
 /**
  * Handle POST request - Create or update operating hours for authenticated user
  */
-export async function handlePost(request: Request): Promise<Response> {
+export async function handlePost(request: Request, env: Env): Promise<Response> {
   try {
     const user = await getAuthenticatedUser(request);
     
@@ -87,7 +89,7 @@ export async function handlePost(request: Request): Promise<Response> {
       );
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = createSupabaseClient(env);
 
     // Delete existing hours for this user
     await supabase

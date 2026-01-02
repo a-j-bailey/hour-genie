@@ -1,5 +1,9 @@
-// @ts-ignore - Cloudflare Workers environment
 import { createClient } from "@supabase/supabase-js";
+
+interface Env {
+  SUPABASE_URL: string;
+  SUPABASE_SERVICE_ROLE_KEY: string;
+}
 
 /**
  * Create Supabase client for server-side operations
@@ -8,11 +12,9 @@ import { createClient } from "@supabase/supabase-js";
  * Note: This file is for Cloudflare Workers deployment.
  * Install @supabase/supabase-js in your Worker environment.
  */
-export function createSupabaseClient() {
-  // @ts-ignore - Cloudflare Workers global
-  const supabaseUrl = SUPABASE_URL || "";
-  // @ts-ignore - Cloudflare Workers global
-  const supabaseServiceKey = SUPABASE_SERVICE_ROLE_KEY || "";
+export function createSupabaseClient(env: Env) {
+  const supabaseUrl = env.SUPABASE_URL || "";
+  const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY || "";
 
   if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error(
