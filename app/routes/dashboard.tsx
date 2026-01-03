@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import type { Route } from "./+types/dashboard";
-import { ProtectedRoute } from "~/components/protected-route";
-import { Nav } from "~/components/nav";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -16,8 +14,7 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { useAuth } from "~/lib/use-auth";
-import { useSidebar } from "~/lib/sidebar-context";
-import { cn, formatPhoneNumber } from "~/lib/utils";
+import { formatPhoneNumber } from "~/lib/utils";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -84,7 +81,6 @@ function createDefaultHoursStructure(): DayHours[] {
 
 function DashboardContent() {
   const { user, session } = useAuth();
-  const { isCollapsed, isMobile } = useSidebar();
   const apiUrl = import.meta.env.VITE_API_URL || "";
 
   // State
@@ -380,35 +376,14 @@ function DashboardContent() {
 
   if (loading) {
     return (
-      <ProtectedRoute>
-        <div className="min-h-screen flex">
-          <Nav />
-          <div
-            className={cn(
-              "flex-1 flex items-center justify-center transition-all duration-300",
-              isMobile ? "ml-0 pt-20" : "",
-              !isMobile && (isCollapsed ? "ml-16" : "ml-64")
-            )}
-          >
-            <div>Loading...</div>
-          </div>
-        </div>
-      </ProtectedRoute>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-lg">Loading...</div>
+      </div>
     );
   }
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen flex">
-        <Nav />
-        <main
-          className={cn(
-            "flex-1 container mx-auto px-4 max-w-6xl transition-all duration-300",
-            isMobile ? "ml-0 pt-20" : "py-8",
-            !isMobile && (isCollapsed ? "ml-16" : "ml-64")
-          )}
-        >
-          <div className="space-y-6">
+    <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -825,10 +800,7 @@ function DashboardContent() {
                 )}
               </>
             )}
-          </div>
-        </main>
-      </div>
-    </ProtectedRoute>
+    </div>
   );
 }
 
