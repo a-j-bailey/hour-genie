@@ -342,7 +342,14 @@ function DashboardContent() {
 
   return (
     <div className="space-y-6">
-            <Dialog 
+      <div>
+        <h1 className="text-3xl font-bold mb-2">Hour Management</h1>
+        <p className="text-muted-foreground">
+          Manage your business operating hours and schedule overrides
+        </p>
+      </div>
+
+      <Dialog 
               open={createBusinessDialogOpen} 
               onOpenChange={(open) => {
                 setCreateBusinessDialogOpen(open);
