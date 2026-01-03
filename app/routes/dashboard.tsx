@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
 import type { Route } from "./+types/dashboard";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
@@ -14,6 +15,7 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { useAuth } from "~/lib/use-auth";
+import { useBusiness } from "~/lib/business-context";
 import { formatPhoneNumber } from "~/lib/utils";
 
 export function meta({}: Route.MetaArgs) {
@@ -81,15 +83,14 @@ function createDefaultHoursStructure(): DayHours[] {
 
 function DashboardContent() {
   const { user, session } = useAuth();
+  const { businesses, selectedBusiness, selectedBusinessId, setSelectedBusinessId, refreshBusinesses, loading: businessLoading } = useBusiness();
   const apiUrl = import.meta.env.VITE_API_URL || "";
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // State
-  const [businesses, setBusinesses] = useState<Business[]>([]);
-  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
-  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [defaultHours, setDefaultHours] = useState<DayHours[]>(createDefaultHoursStructure());
   const [overrides, setOverrides] = useState<HoursOverride[]>([]);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -97,6 +98,15 @@ function DashboardContent() {
   // Dialog states
   const [createBusinessDialogOpen, setCreateBusinessDialogOpen] = useState(false);
   const [createOverrideDialogOpen, setCreateOverrideDialogOpen] = useState(false);
+
+  // Check if we should open the create business dialog from location state
+  useEffect(() => {
+    if (location.state?.openCreateBusiness) {
+      setCreateBusinessDialogOpen(true);
+      // Clear the state to prevent reopening on re-render
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
   const [newBusinessName, setNewBusinessName] = useState("");
   const [newBusinessAddress, setNewBusinessAddress] = useState("");
   const [newBusinessEmail, setNewBusinessEmail] = useState("");
@@ -106,68 +116,17 @@ function DashboardContent() {
   const [overrideDays, setOverrideDays] = useState<DayHours[]>(createDefaultHoursStructure());
 
   useEffect(() => {
-    if (session?.access_token) {
-      fetchBusinesses();
-    }
-  }, [session]);
-
-  useEffect(() => {
-    if (selectedBusinessId) {
-      fetchBusiness(selectedBusinessId);
-      fetchOverrides(selectedBusinessId);
-    }
-  }, [selectedBusinessId, session]);
-
-  const fetchBusinesses = async () => {
-    if (!session?.access_token) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(`${apiUrl}/api/businesses`, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setBusinesses(data || []);
-        if (data && data.length > 0 && !selectedBusinessId) {
-          setSelectedBusinessId(data[0].id);
-        }
+    if (selectedBusiness) {
+      if (selectedBusiness.default_hours && Array.isArray(selectedBusiness.default_hours)) {
+        setDefaultHours(selectedBusiness.default_hours);
+      } else {
+        setDefaultHours(createDefaultHoursStructure());
       }
-    } catch (err) {
-      console.error("Error fetching businesses:", err);
-      setError("Failed to load businesses");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchBusiness = async (businessId: string) => {
-    if (!session?.access_token) return;
-
-    try {
-      const response = await fetch(`${apiUrl}/api/businesses/${businessId}`, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSelectedBusiness(data);
-        if (data.default_hours && Array.isArray(data.default_hours)) {
-          setDefaultHours(data.default_hours);
-        }
+      if (selectedBusinessId) {
+        fetchOverrides(selectedBusinessId);
       }
-    } catch (err) {
-      console.error("Error fetching business:", err);
-      setError("Failed to load business details");
     }
-  };
+  }, [selectedBusiness, selectedBusinessId]);
 
   const fetchOverrides = async (businessId: string) => {
     if (!session?.access_token) return;
@@ -215,7 +174,7 @@ function DashboardContent() {
 
       if (response.ok) {
         const data = await response.json();
-        setBusinesses([...businesses, data]);
+        await refreshBusinesses();
         setSelectedBusinessId(data.id);
         setCreateBusinessDialogOpen(false);
         setNewBusinessName("");
@@ -258,8 +217,7 @@ function DashboardContent() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setSelectedBusiness(data);
+        await refreshBusinesses();
         setSuccess("Default hours updated successfully!");
         setTimeout(() => setSuccess(null), 3000);
       } else {
@@ -374,7 +332,7 @@ function DashboardContent() {
     return new Date(dateString).toLocaleDateString();
   };
 
-  if (loading) {
+  if (businessLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-lg">Loading...</div>
@@ -384,16 +342,21 @@ function DashboardContent() {
 
   return (
     <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold">Dashboard</h1>
-                <p className="text-muted-foreground">Manage your business operating hours</p>
-              </div>
-              <Dialog open={createBusinessDialogOpen} onOpenChange={setCreateBusinessDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>Create Business</Button>
-                </DialogTrigger>
-                <DialogContent>
+            <Dialog 
+              open={createBusinessDialogOpen} 
+              onOpenChange={(open) => {
+                setCreateBusinessDialogOpen(open);
+                if (!open) {
+                  // Reset form when dialog closes
+                  setNewBusinessName("");
+                  setNewBusinessAddress("");
+                  setNewBusinessEmail("");
+                  setNewBusinessPhone("");
+                  setError(null);
+                }
+              }}
+            >
+              <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Create New Business</DialogTitle>
                     <DialogDescription>
@@ -457,7 +420,6 @@ function DashboardContent() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-            </div>
 
             {error && (
               <div className="bg-destructive/10 text-destructive p-4 rounded-md">{error}</div>
@@ -480,26 +442,6 @@ function DashboardContent() {
               </Card>
             ) : (
               <>
-                {/* Business Selector */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Select Business</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <select
-                      value={selectedBusinessId || ""}
-                      onChange={(e) => setSelectedBusinessId(e.target.value)}
-                      className="w-full p-2 border rounded-md"
-                    >
-                      {businesses.map((business) => (
-                        <option key={business.id} value={business.id}>
-                          {business.name}
-                        </option>
-                      ))}
-                    </select>
-                  </CardContent>
-                </Card>
-
                 {selectedBusiness && (
                   <>
                     {/* Default Hours */}

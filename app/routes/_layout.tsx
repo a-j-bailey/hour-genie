@@ -20,6 +20,8 @@ import { ProtectedRoute } from "~/components/protected-route";
 const routeLabels: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/account": "Account",
+  "/integrations": "Integrations",
+  "/settings": "Settings",
 };
 
 export default function Layout() {
