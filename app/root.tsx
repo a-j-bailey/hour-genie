@@ -9,7 +9,6 @@ import {
 
 import type { Route } from "./+types/root";
 import { AuthProvider } from "./lib/auth-context";
-import { SidebarProvider } from "./lib/sidebar-context";
 import { BusinessProvider } from "./lib/business-context";
 import "./app.css";
 
@@ -48,9 +47,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BusinessProvider>
-        <SidebarProvider>
-          <Outlet />
-        </SidebarProvider>
+        <Outlet />
       </BusinessProvider>
     </AuthProvider>
   );

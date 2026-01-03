@@ -2,18 +2,10 @@
 
 import * as React from "react"
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
   Clock,
-  Command,
   Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
   Plug,
   Settings2,
-  SquareTerminal,
 } from "lucide-react"
 
 import { NavMain } from "~/components/nav-main"
@@ -28,25 +20,7 @@ import {
   SidebarRail,
 } from "~/components/ui/sidebar"
 
-// This is sample data.
 const data = {
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
   navMain: [
     {
       title: "Hour Management",
