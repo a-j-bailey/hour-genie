@@ -43,14 +43,18 @@ export function NavUser() {
   
   // Generate initials from name or email
   const getInitials = (name: string, email: string) => {
-    if (name && name !== email.split("@")[0]) {
-      return name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+    // If we have a name that's not just the email prefix, use it
+    if (name && name.trim() && name !== email.split("@")[0]) {
+      const nameParts = name.trim().split(/\s+/)
+      if (nameParts.length >= 2) {
+        // First letter of first name + first letter of last name
+        return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase().slice(0, 2)
+      } else {
+        // Single name - use first two letters
+        return nameParts[0].slice(0, 2).toUpperCase()
+      }
     }
+    // Fallback to email prefix
     return email
       .split("@")[0]
       .slice(0, 2)

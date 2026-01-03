@@ -30,6 +30,7 @@ export function meta({}: Route.MetaArgs) {
 function AccountContent() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,6 +42,7 @@ function AccountContent() {
 
   useEffect(() => {
     if (user) {
+      setName(user.user_metadata?.name || "");
       setEmail(user.email || "");
       setPhone(user.phone || "");
     }
@@ -53,12 +55,23 @@ function AccountContent() {
     setSaving(true);
 
     try {
-      const updates: { email?: string; phone?: string } = {};
+      const updates: { 
+        email?: string; 
+        phone?: string;
+        data?: { name?: string };
+      } = {};
+      
       if (email !== user?.email) {
         updates.email = email;
       }
       if (phone !== user?.phone) {
         updates.phone = phone;
+      }
+      
+      // Update name in user_metadata
+      const currentName = user?.user_metadata?.name || "";
+      if (name !== currentName) {
+        updates.data = { name: name.trim() || undefined };
       }
 
       const { error } = await supabase.auth.updateUser(updates);
@@ -121,11 +134,21 @@ function AccountContent() {
               <CardHeader>
                 <CardTitle>Profile</CardTitle>
                 <CardDescription>
-                  Update your email and phone number
+                  Update your name, email, and phone number
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleUpdateProfile} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Your name"
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <Input

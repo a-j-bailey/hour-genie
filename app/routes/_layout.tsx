@@ -1,4 +1,4 @@
-import { Outlet } from "react-router";
+import { Outlet, useLocation, Link } from "react-router";
 import { AppSidebar } from "~/components/app-sidebar";
 import {
   Breadcrumb,
@@ -16,7 +16,19 @@ import {
 } from "~/components/ui/sidebar";
 import { ProtectedRoute } from "~/components/protected-route";
 
+// Route to breadcrumb label mapping
+const routeLabels: Record<string, string> = {
+  "/dashboard": "Dashboard",
+  "/account": "Account",
+};
+
 export default function Layout() {
+  const location = useLocation();
+  const pathname = location.pathname;
+
+  // Get the current page label
+  const currentPageLabel = routeLabels[pathname] || "Dashboard";
+
   return (
     <ProtectedRoute>
       <SidebarProvider>
@@ -31,15 +43,23 @@ export default function Layout() {
               />
               <Breadcrumb>
                 <BreadcrumbList>
-                  <BreadcrumbItem className="hidden md:block">
-                    <BreadcrumbLink href="#">
-                      Building Your Application
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator className="hidden md:block" />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                  </BreadcrumbItem>
+                  {pathname === "/dashboard" ? (
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  ) : (
+                    <>
+                      <BreadcrumbItem className="hidden md:block">
+                        <BreadcrumbLink asChild>
+                          <Link to="/dashboard">Dashboard</Link>
+                        </BreadcrumbLink>
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator className="hidden md:block" />
+                      <BreadcrumbItem>
+                        <BreadcrumbPage>{currentPageLabel}</BreadcrumbPage>
+                      </BreadcrumbItem>
+                    </>
+                  )}
                 </BreadcrumbList>
               </Breadcrumb>
             </div>
