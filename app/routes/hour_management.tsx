@@ -714,7 +714,6 @@ function HourManagementContent() {
                                                                 </>
                                                             )}
                                                         </div>
-                                                        {index < defaultHours.length - 1 && <Separator />}
                                                     </div>
                                                 );
                                             })}
@@ -722,20 +721,24 @@ function HourManagementContent() {
                                     ) : (
                                         // Read-only mode
                                         <div>
-                                            {defaultHours.map((day, index) => {
+                                            {defaultHours.map((day) => {
                                                 const dayInfo = DAYS_OF_WEEK.find((d) => d.value === day.day_of_week);
                                                 return (
                                                     <div key={day.day_of_week}>
-                                                        <div className="flex items-center justify-between py-4">
+                                                        <div className="flex items-center justify-between py-2">
                                                             <div className="w-24 font-medium">{dayInfo?.name}</div>
                                                             <div className="text-muted-foreground">
                                                                 {formatHoursDisplay(day)}
                                                             </div>
                                                         </div>
-                                                        {index < defaultHours.length - 1 && <Separator />}
                                                     </div>
                                                 );
                                             })}
+                                        </div>
+                                    )}
+                                    {selectedBusiness?.updated_at && (
+                                        <div className="text-xs text-muted-foreground mt-4 pt-4 border-t">
+                                            Last updated: {new Date(selectedBusiness.updated_at).toLocaleString()}
                                         </div>
                                     )}
                                 </CardContent>
