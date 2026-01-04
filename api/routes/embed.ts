@@ -117,9 +117,70 @@ function formatHoursDisplay(day: DayHours): string {
 }
 
 /**
+ * Compare two DayHours to see if they have the same hours
+ */
+function hasSameHours(day1: DayHours, day2: DayHours): boolean {
+  return (
+    day1.is_open === day2.is_open &&
+    day1.is_open_24_7 === day2.is_open_24_7 &&
+    day1.open_time === day2.open_time &&
+    day1.close_time === day2.close_time
+  );
+}
+
+/**
+ * Format day range label (e.g., "Mon - Fri" or just "Monday")
+ */
+function formatDayRange(startDay: number, endDay: number): string {
+  const startName = DAYS_OF_WEEK[startDay].substring(0, 3);
+  if (startDay === endDay) {
+    return DAYS_OF_WEEK[startDay];
+  }
+  const endName = DAYS_OF_WEEK[endDay].substring(0, 3);
+  return `${startName} - ${endName}`;
+}
+
+/**
+ * Generate condensed table rows (group consecutive days with same hours)
+ */
+function generateCondensedRows(hours: DayHours[]): string {
+  let tableRows = "";
+  let i = 0;
+
+  while (i < hours.length) {
+    const startDay = hours[i];
+    const hoursText = formatHoursDisplay(startDay);
+    let endDay = i;
+
+    // Find consecutive days with the same hours
+    while (endDay + 1 < hours.length && hasSameHours(startDay, hours[endDay + 1])) {
+      endDay++;
+    }
+
+    const dayRange = formatDayRange(i, endDay);
+    tableRows += `
+      <tr>
+        <td>${dayRange}</td>
+        <td>${hoursText}</td>
+      </tr>
+    `;
+
+    i = endDay + 1;
+  }
+
+  return tableRows;
+}
+
+/**
  * Generate HTML for the widget
  */
-function generateWidgetHTML(hours: DayHours[], css: string, businessName?: string, showSeparators: boolean = true): string {
+function generateWidgetHTML(
+  hours: DayHours[],
+  css: string,
+  businessName?: string,
+  showSeparators: boolean = true,
+  style: "expanded" | "condensed" = "expanded"
+): string {
   const separatorCSS = showSeparators ? `
     .hour-genie-widget tr {
       border-bottom: 1px solid #e5e5e5;
@@ -165,15 +226,20 @@ function generateWidgetHTML(hours: DayHours[], css: string, businessName?: strin
   const combinedCSS = defaultCSS + "\n" + customCSS;
 
   let tableRows = "";
-  for (const day of hours) {
-    const dayName = DAYS_OF_WEEK[day.day_of_week];
-    const hoursText = formatHoursDisplay(day);
-    tableRows += `
+  if (style === "condensed") {
+    tableRows = generateCondensedRows(hours);
+  } else {
+    // Expanded style - show all days
+    for (const day of hours) {
+      const dayName = DAYS_OF_WEEK[day.day_of_week];
+      const hoursText = formatHoursDisplay(day);
+      tableRows += `
       <tr>
         <td>${dayName}</td>
         <td>${hoursText}</td>
       </tr>
     `;
+    }
   }
 
   const title = businessName ? `<h3>${businessName} Hours</h3>` : "<h3>Business Hours</h3>";
@@ -269,6 +335,7 @@ export async function handleGet(request: Request, env: Env): Promise<Response> {
     // Fetch integration config for CSS customizations and settings
     let customCSS = "";
     let showSeparators = true; // Default to true
+    let style: "expanded" | "condensed" = "expanded"; // Default to expanded
     const { data: integration } = await supabase
       .from("integrations")
       .select("config")
@@ -283,10 +350,13 @@ export async function handleGet(request: Request, env: Env): Promise<Response> {
       if (integration.config.showSeparators !== undefined) {
         showSeparators = integration.config.showSeparators;
       }
+      if (integration.config.style) {
+        style = integration.config.style;
+      }
     }
 
     // Generate HTML
-    const html = generateWidgetHTML(currentWeekHours, customCSS, business.name, showSeparators);
+    const html = generateWidgetHTML(currentWeekHours, customCSS, business.name, showSeparators, style);
 
     return new Response(html, {
       status: 200,

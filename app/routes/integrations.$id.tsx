@@ -132,12 +132,6 @@ export default function IntegrationDetail() {
   return (
     <div className="space-y-6">
       <div>
-        <Link to="/integrations">
-          <Button variant="ghost" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Integrations
-          </Button>
-        </Link>
         <div className="flex items-center gap-4 mb-4">
           {integration.logo ? (
             <Avatar className="h-16 w-16 rounded-lg">

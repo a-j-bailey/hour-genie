@@ -10,6 +10,7 @@ import { Copy, Check } from "lucide-react";
 interface IntegrationConfig {
   css?: string;
   showSeparators?: boolean;
+  style?: "expanded" | "condensed";
 }
 
 export function IframeConfig() {
@@ -19,6 +20,7 @@ export function IframeConfig() {
   
   const [css, setCss] = useState("");
   const [showSeparators, setShowSeparators] = useState(true);
+  const [style, setStyle] = useState<"expanded" | "condensed">("expanded");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +54,11 @@ export function IframeConfig() {
             setShowSeparators(data.config.showSeparators);
           } else {
             setShowSeparators(true); // Default to true
+          }
+          if (data.config?.style) {
+            setStyle(data.config.style);
+          } else {
+            setStyle("expanded"); // Default to expanded
           }
         } else if (response.status !== 404) {
           // 404 is fine - no config exists yet
@@ -92,6 +99,7 @@ export function IframeConfig() {
             config: {
               css: css || "",
               showSeparators: showSeparators,
+              style: style,
             },
           }),
         }
@@ -195,16 +203,51 @@ export function IframeConfig() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="show-separators"
-                checked={showSeparators}
-                onChange={(e) => setShowSeparators(e.target.checked)}
-                className="h-4 w-4"
-              />
-              <Label htmlFor="show-separators">Show day separators</Label>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Display Style</Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="style-expanded"
+                    name="display-style"
+                    value="expanded"
+                    checked={style === "expanded"}
+                    onChange={(e) => setStyle(e.target.value as "expanded" | "condensed")}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="style-expanded" className="font-normal cursor-pointer">
+                    Expanded (show all days)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="style-condensed"
+                    name="display-style"
+                    value="condensed"
+                    checked={style === "condensed"}
+                    onChange={(e) => setStyle(e.target.value as "expanded" | "condensed")}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="style-condensed" className="font-normal cursor-pointer">
+                    Condensed (group consecutive days)
+                  </Label>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="show-separators"
+                  checked={showSeparators}
+                  onChange={(e) => setShowSeparators(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="show-separators">Show day separators</Label>
+              </div>
             </div>
           </div>
           <div className="space-y-2">
