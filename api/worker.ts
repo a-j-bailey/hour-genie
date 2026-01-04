@@ -39,10 +39,28 @@ import {
   handleGet as handleGetEmbed,
   handleOptions as handleOptionsEmbed,
 } from "./routes/embed";
+import {
+  handleGet as handleGetSubscriptions,
+  handlePost as handlePostSubscriptions,
+  handleGetPortal,
+  handleOptions as handleOptionsSubscriptions,
+} from "./routes/subscriptions";
+import {
+  handlePost as handlePostWebhook,
+  handleOptions as handleOptionsWebhook,
+} from "./routes/stripe-webhook";
 
 interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_PAYMENT_LINK_ID?: string;
+  STRIPE_PRICE_ID?: string;
+  STRIPE_MONTHLY_PRICE_ID?: string;
+  STRIPE_ANNUAL_PRICE_ID?: string;
+  STRIPE_MONTHLY_PAYMENT_LINK_ID?: string;
+  STRIPE_ANNUAL_PAYMENT_LINK_ID?: string;
 }
 
 export default {
@@ -54,7 +72,11 @@ export default {
     // Handle CORS preflight
     if (method === "OPTIONS") {
       // Return appropriate OPTIONS handler based on path
-      if (path.startsWith("/api/embed")) {
+      if (path.startsWith("/api/stripe-webhook")) {
+        return handleOptionsWebhook();
+      } else if (path.startsWith("/api/subscriptions")) {
+        return handleOptionsSubscriptions();
+      } else if (path.startsWith("/api/embed")) {
         return handleOptionsEmbed();
       } else if (path.startsWith("/api/businesses") && path.includes("/integrations")) {
         return handleOptionsIntegrations();
@@ -72,6 +94,44 @@ export default {
           "Access-Control-Allow-Headers": "Content-Type, Authorization",
         },
       });
+    }
+
+    // Route: /api/stripe-webhook (public endpoint, signature verified)
+    if (path === "/api/stripe-webhook") {
+      if (method === "POST") {
+        return handlePostWebhook(request, env);
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Method not allowed" }),
+          { status: 405, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // Route: /api/subscriptions/portal
+    if (path === "/api/subscriptions/portal") {
+      if (method === "GET") {
+        return handleGetPortal(request, env);
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Method not allowed" }),
+          { status: 405, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // Route: /api/subscriptions
+    if (path === "/api/subscriptions") {
+      if (method === "GET") {
+        return handleGetSubscriptions(request, env);
+      } else if (method === "POST") {
+        return handlePostSubscriptions(request, env);
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Method not allowed" }),
+          { status: 405, headers: { "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Route: /api/embed/hours (public endpoint, no auth required)

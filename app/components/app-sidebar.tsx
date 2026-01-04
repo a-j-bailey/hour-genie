@@ -22,6 +22,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from "~/components/ui/sidebar"
+import { Separator } from "./ui/separator"
 
 const data = {
   navMain: [
@@ -80,13 +81,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarTitle />
-        <SidebarSeparator />
+        <Separator />
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
       </SidebarContent>
+      <Separator />
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>

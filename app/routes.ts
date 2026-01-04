@@ -7,6 +7,7 @@ export default [
   layout("routes/_layout.tsx", [
     route("hours", "routes/hour_management.tsx"),
     route("account", "routes/account.tsx"),
+    route("billing", "routes/billing.tsx"),
     route("integrations", "routes/integrations.tsx", [
       route(":id", "routes/integrations.$id.tsx"),
     ]),

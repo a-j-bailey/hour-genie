@@ -21,6 +21,7 @@ import { ProtectedRoute } from "~/components/protected-route";
 const routeLabels: Record<string, string> = {
   "/hours": "Hour Management",
   "/account": "Account",
+  "/billing": "Billing",
   "/integrations": "Integrations",
   "/settings": "Settings",
 };

@@ -1,5 +1,6 @@
 import {
   ChevronsUpDown,
+  CreditCard,
   LogOut,
   User,
 } from "lucide-react"
@@ -111,6 +112,10 @@ export function NavUser() {
               <DropdownMenuItem onClick={() => navigate("/account")}>
                 <User />
                 Account
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/billing")}>
+                <CreditCard />
+                Billing
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
