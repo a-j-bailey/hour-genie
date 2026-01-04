@@ -1,8 +1,11 @@
 import type { Route } from "./+types/integrations";
 import { Link, Outlet, useLocation } from "react-router";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
+import { useBusiness } from "~/lib/business-context";
+import { useAuth } from "~/lib/use-auth";
 import {
   CheckCircle2,
   Code,
@@ -102,7 +105,13 @@ const integrations: Integration[] = [
   },
 ];
 
-function IntegrationCard({ integration }: { integration: Integration }) {
+function IntegrationCard({ 
+  integration, 
+  isActive 
+}: { 
+  integration: Integration;
+  isActive: boolean;
+}) {
   const Icon = integration.icon;
   const isInstalled = integration.status === "INSTALLED";
   const isComingSoon = integration.status === "COMING_SOON";
@@ -144,25 +153,17 @@ function IntegrationCard({ integration }: { integration: Integration }) {
         <CardDescription className="text-sm">{integration.description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-between">
-          <Badge
-            variant={
-              integration.status === "OFFICIAL" || integration.status === "INSTALLED"
-                ? "default"
-                : integration.status === "BETA"
-                ? "secondary"
-                : integration.status === "COMING_SOON"
-                ? "secondary"
-                : "outline"
-            }
-            className="text-xs"
-          >
-            {integration.status === "INSTALLED"
-              ? "INSTALLED"
-              : integration.status === "COMING_SOON"
-              ? "COMING SOON"
-              : integration.status}
-          </Badge>
+        <div className="flex items-center justify-between gap-2">
+          {isActive && (
+            <Badge variant="default" className="text-xs bg-green-600 hover:bg-green-700">
+              ACTIVE
+            </Badge>
+          )}
+          {integration.status === "COMING_SOON" && (
+            <Badge variant="secondary" className="text-xs">
+              COMING SOON
+            </Badge>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -182,8 +183,49 @@ function IntegrationCard({ integration }: { integration: Integration }) {
 export default function Integrations() {
   const location = useLocation();
   const isDetailPage = location.pathname !== "/integrations";
+  const { selectedBusinessId } = useBusiness();
+  const { session } = useAuth();
+  const [activeIntegrations, setActiveIntegrations] = useState<string[]>([]);
+  const apiUrl = import.meta.env.VITE_API_URL || "";
+
   const websites = integrations.filter((i) => i.category === "website");
   const platforms = integrations.filter((i) => i.category === "platform");
+
+  // Fetch active integrations from database
+  useEffect(() => {
+    const fetchActiveIntegrations = async () => {
+      if (!selectedBusinessId || !session?.access_token) {
+        setActiveIntegrations([]);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `${apiUrl}/api/businesses/${selectedBusinessId}/integrations`,
+          {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const activeTypes = (data || []).map((integration: { integration_type: string }) => 
+            integration.integration_type
+          );
+          setActiveIntegrations(activeTypes);
+        } else {
+          setActiveIntegrations([]);
+        }
+      } catch (error) {
+        console.error("Error fetching active integrations:", error);
+        setActiveIntegrations([]);
+      }
+    };
+
+    fetchActiveIntegrations();
+  }, [selectedBusinessId, session, apiUrl]);
 
   return (
     <>
@@ -206,7 +248,11 @@ export default function Integrations() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {websites.map((integration) => (
-                <IntegrationCard key={integration.id} integration={integration} />
+                <IntegrationCard 
+                  key={integration.id} 
+                  integration={integration}
+                  isActive={activeIntegrations.includes(integration.id)}
+                />
               ))}
             </div>
           </div>
@@ -221,7 +267,11 @@ export default function Integrations() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {platforms.map((integration) => (
-                <IntegrationCard key={integration.id} integration={integration} />
+                <IntegrationCard 
+                  key={integration.id} 
+                  integration={integration}
+                  isActive={activeIntegrations.includes(integration.id)}
+                />
               ))}
             </div>
           </div>
