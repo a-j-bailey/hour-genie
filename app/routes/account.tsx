@@ -180,7 +180,7 @@ export default function Account() {
               <span className="text-sm font-medium">{user.email}</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Your email address cannot be changed here
+              Your email address cannot be changed at this time.
             </p>
           </div>
 

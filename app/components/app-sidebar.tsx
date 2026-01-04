@@ -46,11 +46,11 @@ const data = {
     },
   ],
   projects: [
-    {
-      name: "Dashboard",
-      url: "/account",
-      icon: Frame,
-    },
+    // {
+    //   name: "Dashboard",
+    //   url: "/account",
+    //   icon: Frame,
+    // },
   ],
 }
 
@@ -86,7 +86,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <Separator />
       <SidebarFooter>
