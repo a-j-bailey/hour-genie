@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { Separator } from "~/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,7 @@ import { formatPhoneNumber } from "~/lib/utils";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Dashboard - Hour Genie" },
+    { title: "Hour Management - Hour Genie" },
     { name: "description", content: "Manage your business operating hours" },
   ];
 }
@@ -94,6 +95,8 @@ function DashboardContent() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isEditingDefaultHours, setIsEditingDefaultHours] = useState(false);
+  const [originalDefaultHours, setOriginalDefaultHours] = useState<DayHours[]>(createDefaultHoursStructure());
 
   // Dialog states
   const [createBusinessDialogOpen, setCreateBusinessDialogOpen] = useState(false);
@@ -117,11 +120,12 @@ function DashboardContent() {
 
   useEffect(() => {
     if (selectedBusiness) {
-      if (selectedBusiness.default_hours && Array.isArray(selectedBusiness.default_hours)) {
-        setDefaultHours(selectedBusiness.default_hours);
-      } else {
-        setDefaultHours(createDefaultHoursStructure());
-      }
+      const hours = selectedBusiness.default_hours && Array.isArray(selectedBusiness.default_hours)
+        ? selectedBusiness.default_hours
+        : createDefaultHoursStructure();
+      setDefaultHours(hours);
+      setOriginalDefaultHours(hours);
+      setIsEditingDefaultHours(false);
       if (selectedBusinessId) {
         fetchOverrides(selectedBusinessId);
       }
@@ -218,6 +222,8 @@ function DashboardContent() {
 
       if (response.ok) {
         await refreshBusinesses();
+        setOriginalDefaultHours(defaultHours);
+        setIsEditingDefaultHours(false);
         setSuccess("Default hours updated successfully!");
         setTimeout(() => setSuccess(null), 3000);
       } else {
@@ -229,6 +235,29 @@ function DashboardContent() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancelEditDefaultHours = () => {
+    setDefaultHours(originalDefaultHours);
+    setIsEditingDefaultHours(false);
+  };
+
+  const handleStartEditDefaultHours = () => {
+    setOriginalDefaultHours(defaultHours);
+    setIsEditingDefaultHours(true);
+  };
+
+  const formatHoursDisplay = (day: DayHours) => {
+    if (!day.is_open) {
+      return "Closed";
+    }
+    if (day.is_open_24_7) {
+      return "Open 24/7";
+    }
+    if (day.open_time && day.close_time) {
+      return `${day.open_time} - ${day.close_time}`;
+    }
+    return "Hours not set";
   };
 
   const handleCreateOverride = async () => {
@@ -453,101 +482,140 @@ function DashboardContent() {
                   <>
                     {/* Default Hours */}
                     <Card>
-                      <CardHeader>
-                        <CardTitle>Default Operating Hours</CardTitle>
-                        <CardDescription>
-                          Configure default hours for {selectedBusiness.name}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        {defaultHours.map((day) => {
-                          const dayInfo = DAYS_OF_WEEK.find((d) => d.value === day.day_of_week);
-                          return (
-                            <div
-                              key={day.day_of_week}
-                              className="flex items-center gap-4 p-4 border rounded-lg flex-wrap"
-                            >
-                              <div className="w-24 font-medium">{dayInfo?.name}</div>
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="checkbox"
-                                  id={`default-open-${day.day_of_week}`}
-                                  checked={day.is_open}
-                                  onChange={(e) =>
-                                    updateDefaultDay(day.day_of_week, {
-                                      is_open: e.target.checked,
-                                      is_open_24_7: e.target.checked ? day.is_open_24_7 : false,
-                                    })
-                                  }
-                                  className="h-4 w-4"
-                                />
-                                <Label htmlFor={`default-open-${day.day_of_week}`}>Open</Label>
-                              </div>
-                              {day.is_open && (
-                                <>
-                                  <div className="flex items-center gap-2">
-                                    <input
-                                      type="checkbox"
-                                      id={`default-24-7-${day.day_of_week}`}
-                                      checked={day.is_open_24_7}
-                                      onChange={(e) =>
-                                        updateDefaultDay(day.day_of_week, {
-                                          is_open_24_7: e.target.checked,
-                                        })
-                                      }
-                                      className="h-4 w-4"
-                                    />
-                                    <Label htmlFor={`default-24-7-${day.day_of_week}`}>24/7</Label>
-                                  </div>
-                                  {!day.is_open_24_7 && (
-                                    <>
-                                      <div className="flex items-center gap-2">
-                                        <Label htmlFor={`default-open-time-${day.day_of_week}`}>
-                                          Open:
-                                        </Label>
-                                        <Input
-                                          id={`default-open-time-${day.day_of_week}`}
-                                          type="time"
-                                          value={day.open_time || ""}
-                                          onChange={(e) =>
-                                            updateDefaultDay(day.day_of_week, {
-                                              open_time: e.target.value || null,
-                                            })
-                                          }
-                                          className="w-32"
-                                        />
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Label htmlFor={`default-close-time-${day.day_of_week}`}>
-                                          Close:
-                                        </Label>
-                                        <Input
-                                          id={`default-close-time-${day.day_of_week}`}
-                                          type="time"
-                                          value={day.close_time || ""}
-                                          onChange={(e) =>
-                                            updateDefaultDay(day.day_of_week, {
-                                              close_time: e.target.value || null,
-                                            })
-                                          }
-                                          className="w-32"
-                                        />
-                                      </div>
-                                    </>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </CardContent>
-                      <CardContent>
-                        <div className="flex justify-end">
-                          <Button onClick={handleUpdateDefaultHours} disabled={saving}>
-                            {saving ? "Saving..." : "Save Default Hours"}
-                          </Button>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                          <CardTitle>Default Operating Hours</CardTitle>
+                          <CardDescription>
+                            Configure default hours for {selectedBusiness.name}
+                          </CardDescription>
                         </div>
+                        {!isEditingDefaultHours && (
+                          <Button onClick={handleStartEditDefaultHours}>
+                            Edit Hours
+                          </Button>
+                        )}
+                      </CardHeader>
+                      <CardContent>
+                        {isEditingDefaultHours ? (
+                          // Edit mode
+                          <div>
+                            {defaultHours.map((day, index) => {
+                              const dayInfo = DAYS_OF_WEEK.find((d) => d.value === day.day_of_week);
+                              return (
+                                <div key={day.day_of_week}>
+                                  <div className="flex items-center gap-4 py-4 flex-wrap">
+                                    <div className="w-24 font-medium">{dayInfo?.name}</div>
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="checkbox"
+                                        id={`default-open-${day.day_of_week}`}
+                                        checked={day.is_open}
+                                        onChange={(e) =>
+                                          updateDefaultDay(day.day_of_week, {
+                                            is_open: e.target.checked,
+                                            is_open_24_7: e.target.checked ? day.is_open_24_7 : false,
+                                          })
+                                        }
+                                        className="h-4 w-4"
+                                      />
+                                      <Label htmlFor={`default-open-${day.day_of_week}`}>Open</Label>
+                                    </div>
+                                    {day.is_open && (
+                                      <>
+                                        <div className="flex items-center gap-2">
+                                          <input
+                                            type="checkbox"
+                                            id={`default-24-7-${day.day_of_week}`}
+                                            checked={day.is_open_24_7}
+                                            onChange={(e) =>
+                                              updateDefaultDay(day.day_of_week, {
+                                                is_open_24_7: e.target.checked,
+                                              })
+                                            }
+                                            className="h-4 w-4"
+                                          />
+                                          <Label htmlFor={`default-24-7-${day.day_of_week}`}>24/7</Label>
+                                        </div>
+                                        {!day.is_open_24_7 && (
+                                          <>
+                                            <div className="flex items-center gap-2">
+                                              <Label htmlFor={`default-open-time-${day.day_of_week}`}>
+                                                Open:
+                                              </Label>
+                                              <Input
+                                                id={`default-open-time-${day.day_of_week}`}
+                                                type="time"
+                                                value={day.open_time || ""}
+                                                onChange={(e) =>
+                                                  updateDefaultDay(day.day_of_week, {
+                                                    open_time: e.target.value || null,
+                                                  })
+                                                }
+                                                className="w-32"
+                                              />
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              <Label htmlFor={`default-close-time-${day.day_of_week}`}>
+                                                Close:
+                                              </Label>
+                                              <Input
+                                                id={`default-close-time-${day.day_of_week}`}
+                                                type="time"
+                                                value={day.close_time || ""}
+                                                onChange={(e) =>
+                                                  updateDefaultDay(day.day_of_week, {
+                                                    close_time: e.target.value || null,
+                                                  })
+                                                }
+                                                className="w-32"
+                                              />
+                                            </div>
+                                          </>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+                                  {index < defaultHours.length - 1 && <Separator />}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          // Read-only mode
+                          <div>
+                            {defaultHours.map((day, index) => {
+                              const dayInfo = DAYS_OF_WEEK.find((d) => d.value === day.day_of_week);
+                              return (
+                                <div key={day.day_of_week}>
+                                  <div className="flex items-center justify-between py-4">
+                                    <div className="w-24 font-medium">{dayInfo?.name}</div>
+                                    <div className="text-muted-foreground">
+                                      {formatHoursDisplay(day)}
+                                    </div>
+                                  </div>
+                                  {index < defaultHours.length - 1 && <Separator />}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </CardContent>
+                      {isEditingDefaultHours && (
+                        <CardContent>
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={handleCancelEditDefaultHours}
+                              disabled={saving}
+                            >
+                              Cancel
+                            </Button>
+                            <Button onClick={handleUpdateDefaultHours} disabled={saving}>
+                              {saving ? "Saving..." : "Save Default Hours"}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      )}
                     </Card>
 
                     {/* Hours Overrides */}

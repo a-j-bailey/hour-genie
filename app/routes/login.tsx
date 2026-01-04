@@ -27,7 +27,7 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      navigate("/hours");
     }
   }, [user, navigate]);
 
@@ -69,7 +69,7 @@ export default function Login() {
           // User is automatically authenticated (email confirmation disabled)
           // The useEffect will catch the user state change and redirect
           // But we can also navigate immediately since we have a session
-          navigate("/dashboard");
+          navigate("/hours");
         } else {
           // Email confirmation required - show message
           setError("Please check your email to confirm your account before signing in.");
@@ -83,7 +83,7 @@ export default function Login() {
           setLoading(false);
         } else {
           // Sign in successful - useEffect will handle redirect
-          navigate("/dashboard");
+          navigate("/hours");
         }
       }
     } catch (err) {

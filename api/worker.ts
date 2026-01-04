@@ -27,6 +27,18 @@ import {
   handleDelete as handleDeleteOverride,
   handleOptions as handleOptionsOverrides,
 } from "./routes/hours-overrides";
+import {
+  handleGet as handleGetIntegrations,
+  handleGetByType,
+  handlePost as handlePostIntegration,
+  handlePut as handlePutIntegration,
+  handleDelete as handleDeleteIntegration,
+  handleOptions as handleOptionsIntegrations,
+} from "./routes/integrations";
+import {
+  handleGet as handleGetEmbed,
+  handleOptions as handleOptionsEmbed,
+} from "./routes/embed";
 
 interface Env {
   SUPABASE_URL: string;
@@ -42,7 +54,11 @@ export default {
     // Handle CORS preflight
     if (method === "OPTIONS") {
       // Return appropriate OPTIONS handler based on path
-      if (path.startsWith("/api/businesses")) {
+      if (path.startsWith("/api/embed")) {
+        return handleOptionsEmbed();
+      } else if (path.startsWith("/api/businesses") && path.includes("/integrations")) {
+        return handleOptionsIntegrations();
+      } else if (path.startsWith("/api/businesses")) {
         return handleOptionsBusinesses();
       } else if (path.startsWith("/api/hours-overrides") || path.includes("/hours-overrides")) {
         return handleOptionsOverrides();
@@ -56,6 +72,53 @@ export default {
           "Access-Control-Allow-Headers": "Content-Type, Authorization",
         },
       });
+    }
+
+    // Route: /api/embed/hours (public endpoint, no auth required)
+    if (path === "/api/embed/hours") {
+      if (method === "GET") {
+        return handleGetEmbed(request, env);
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Method not allowed" }),
+          { status: 405, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // Route: /api/businesses/:businessId/integrations/:integrationType (check this first, more specific)
+    const integrationTypeMatch = path.match(/^\/api\/businesses\/([^\/]+)\/integrations\/([^\/]+)$/);
+    if (integrationTypeMatch) {
+      const businessId = integrationTypeMatch[1];
+      const integrationType = integrationTypeMatch[2];
+      if (method === "GET") {
+        return handleGetByType(request, env, businessId, integrationType);
+      } else if (method === "PUT") {
+        return handlePutIntegration(request, env, businessId, integrationType);
+      } else if (method === "DELETE") {
+        return handleDeleteIntegration(request, env, businessId, integrationType);
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Method not allowed" }),
+          { status: 405, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // Route: /api/businesses/:businessId/integrations
+    const integrationsPathMatch = path.match(/^\/api\/businesses\/([^\/]+)\/integrations$/);
+    if (integrationsPathMatch) {
+      const businessId = integrationsPathMatch[1];
+      if (method === "GET") {
+        return handleGetIntegrations(request, env, businessId);
+      } else if (method === "POST") {
+        return handlePostIntegration(request, env, businessId);
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Method not allowed" }),
+          { status: 405, headers: { "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Route: /api/businesses/:businessId/hours-overrides (check this first, more specific)

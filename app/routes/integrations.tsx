@@ -1,20 +1,11 @@
 import type { Route } from "./+types/integrations";
+import { Link, Outlet, useLocation } from "react-router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import {
-  Globe,
-  Calendar,
-  CreditCard,
-  Mail,
-  MessageSquare,
-  ShoppingCart,
-  Cloud,
-  Database,
-  Zap,
-  Lock,
-  BarChart3,
-  Settings,
   CheckCircle2,
+  Code,
 } from "lucide-react";
 
 export function meta({}: Route.MetaArgs) {
@@ -28,108 +19,85 @@ interface Integration {
   id: string;
   name: string;
   description: string;
-  icon: React.ElementType;
-  status: "OFFICIAL" | "BETA" | "ALPHA" | "INSTALLED";
+  icon?: React.ElementType;
+  logo?: string;
+  status: "OFFICIAL" | "BETA" | "ALPHA" | "INSTALLED" | "COMING_SOON";
   category: "website" | "platform";
 }
 
 const integrations: Integration[] = [
   // Websites
   {
-    id: "google-calendar",
-    name: "Google Calendar",
-    description: "Sync your business hours with Google Calendar events",
-    icon: Calendar,
+    id: "iframe",
+    name: "iframe",
+    description: "Embed business hours widget on any website using an iframe",
+    icon: Code,
     status: "OFFICIAL",
     category: "website",
   },
   {
-    id: "stripe",
-    name: "Stripe",
-    description: "Sync payment processing hours and availability",
-    icon: CreditCard,
-    status: "OFFICIAL",
+    id: "wix",
+    name: "Wix",
+    description: "Sync operating hours with your Wix website",
+    logo: "/imgs/logos/wix.png",
+    status: "COMING_SOON",
     category: "website",
   },
   {
-    id: "mailchimp",
-    name: "Mailchimp",
-    description: "Send automated emails based on business hours",
-    icon: Mail,
-    status: "BETA",
+    id: "framer",
+    name: "Framer",
+    description: "Display business hours on your Framer website",
+    logo: "/imgs/logos/framer.png",
+    status: "COMING_SOON",
     category: "website",
   },
   {
-    id: "intercom",
-    name: "Intercom",
-    description: "Update chat availability based on operating hours",
-    icon: MessageSquare,
-    status: "OFFICIAL",
-    category: "website",
-  },
-  {
-    id: "shopify",
-    name: "Shopify",
-    description: "Sync store hours with your Shopify storefront",
-    icon: ShoppingCart,
-    status: "OFFICIAL",
+    id: "squarespace",
+    name: "Squarespace",
+    description: "Display business hours on your Squarespace website",
+    logo: "/imgs/logos/squarespace.png",
+    status: "COMING_SOON",
     category: "website",
   },
   {
     id: "wordpress",
     name: "WordPress",
     description: "Display business hours on your WordPress site",
-    icon: Globe,
-    status: "OFFICIAL",
+    logo: "/imgs/logos/wordpress.png",
+    status: "COMING_SOON",
+    category: "website",
+  },
+  {
+    id: "webflow",
+    name: "Webflow",
+    description: "Integrate business hours into your Webflow site",
+    logo: "/imgs/logos/webflow.png",
+    status: "COMING_SOON",
     category: "website",
   },
   // Platforms
   {
-    id: "aws",
-    name: "AWS",
-    description: "Integrate with AWS services for automated scheduling",
-    icon: Cloud,
-    status: "OFFICIAL",
+    id: "apple-maps",
+    name: "Apple Maps",
+    description: "Display business hours on Apple Maps",
+    logo: "/imgs/logos/apple_maps.png",
+    status: "COMING_SOON",
     category: "platform",
   },
   {
-    id: "postgres",
-    name: "PostgreSQL",
-    description: "Store and query business hours data in PostgreSQL",
-    icon: Database,
-    status: "INSTALLED",
+    id: "google-maps",
+    name: "Google Maps",
+    description: "Display business hours on Google Maps",
+    logo: "/imgs/logos/google_maps.svg",
+    status: "COMING_SOON",
     category: "platform",
   },
   {
-    id: "zapier",
-    name: "Zapier",
-    description: "Connect with 5000+ apps through Zapier automation",
-    icon: Zap,
-    status: "OFFICIAL",
-    category: "platform",
-  },
-  {
-    id: "auth0",
-    name: "Auth0",
-    description: "Secure authentication and user management",
-    icon: Lock,
-    status: "OFFICIAL",
-    category: "platform",
-  },
-  {
-    id: "analytics",
-    name: "Analytics",
-    description: "Track and analyze business hours performance",
-    icon: BarChart3,
-    status: "BETA",
-    category: "platform",
-  },
-  {
-    id: "api",
-    name: "API Gateway",
-    description: "RESTful API for programmatic access to hours data",
-    icon: Settings,
-    status: "OFFICIAL",
+    id: "yelp",
+    name: "Yelp",
+    description: "Display business hours on Yelp",
+    logo: "/imgs/logos/yelp.png",
+    status: "COMING_SOON",
     category: "platform",
   },
 ];
@@ -137,15 +105,34 @@ const integrations: Integration[] = [
 function IntegrationCard({ integration }: { integration: Integration }) {
   const Icon = integration.icon;
   const isInstalled = integration.status === "INSTALLED";
+  const isComingSoon = integration.status === "COMING_SOON";
+  const isClickable = !isComingSoon;
 
-  return (
-    <Card className="group hover:shadow-lg transition-shadow cursor-pointer">
+  const cardContent = (
+    <Card
+      className={`group transition-shadow ${
+        isClickable
+          ? "hover:shadow-lg cursor-pointer"
+          : "cursor-not-allowed opacity-75"
+      }`}
+    >
       <CardHeader>
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
+            {integration.logo ? (
+              <Avatar className="h-10 w-10 rounded-lg">
+                <AvatarImage
+                  src={integration.logo}
+                  alt={`${integration.name} logo`}
+                  className="object-contain"
+                />
+                <AvatarFallback className="rounded-lg">
+                  {integration.name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            ) : Icon ? (
               <Icon className="h-6 w-6 text-primary" />
-            </div>
+            ) : null}
             <div>
               <CardTitle className="text-lg">{integration.name}</CardTitle>
             </div>
@@ -164,61 +151,85 @@ function IntegrationCard({ integration }: { integration: Integration }) {
                 ? "default"
                 : integration.status === "BETA"
                 ? "secondary"
+                : integration.status === "COMING_SOON"
+                ? "secondary"
                 : "outline"
             }
             className="text-xs"
           >
-            {integration.status === "INSTALLED" ? "INSTALLED" : integration.status}
+            {integration.status === "INSTALLED"
+              ? "INSTALLED"
+              : integration.status === "COMING_SOON"
+              ? "COMING SOON"
+              : integration.status}
           </Badge>
         </div>
       </CardContent>
     </Card>
   );
+
+  if (isClickable) {
+    return (
+      <Link to={`/integrations/${integration.id}`} className="block">
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
 }
 
 export default function Integrations() {
+  const location = useLocation();
+  const isDetailPage = location.pathname !== "/integrations";
   const websites = integrations.filter((i) => i.category === "website");
   const platforms = integrations.filter((i) => i.category === "platform");
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Integrations</h1>
-        <p className="text-muted-foreground">
-          Connect your business with third-party services and platforms
-        </p>
-      </div>
+    <>
+      {!isDetailPage && (
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Integrations</h1>
+            <p className="text-muted-foreground">
+              Connect your business with third-party services and platforms
+            </p>
+          </div>
 
-      {/* Websites Section */}
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-2xl font-semibold mb-1">Websites</h2>
-          <p className="text-sm text-muted-foreground">
-            Integrate with popular website platforms and services
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {websites.map((integration) => (
-            <IntegrationCard key={integration.id} integration={integration} />
-          ))}
-        </div>
-      </div>
+          {/* Websites Section */}
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-2xl font-semibold mb-1">Websites</h2>
+              <p className="text-sm text-muted-foreground">
+                Integrate with popular website platforms and services
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {websites.map((integration) => (
+                <IntegrationCard key={integration.id} integration={integration} />
+              ))}
+            </div>
+          </div>
 
-      {/* Platforms Section */}
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-2xl font-semibold mb-1">Platforms</h2>
-          <p className="text-sm text-muted-foreground">
-            Connect with cloud platforms and infrastructure services
-          </p>
+          {/* Platforms Section */}
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-2xl font-semibold mb-1">Platforms</h2>
+              <p className="text-sm text-muted-foreground">
+                Connect with cloud platforms and infrastructure services
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {platforms.map((integration) => (
+                <IntegrationCard key={integration.id} integration={integration} />
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {platforms.map((integration) => (
-            <IntegrationCard key={integration.id} integration={integration} />
-          ))}
-        </div>
-      </div>
-    </div>
+      )}
+      <Outlet />
+    </>
   );
 }
+
 

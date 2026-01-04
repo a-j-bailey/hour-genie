@@ -6,7 +6,6 @@ import {
   Frame,
   Plug,
   Settings2,
-  Sparkles,
 } from "lucide-react"
 
 import { NavMain } from "~/components/nav-main"
@@ -18,6 +17,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenuButton,
   SidebarRail,
   SidebarSeparator,
   useSidebar,
@@ -27,7 +27,7 @@ const data = {
   navMain: [
     {
       title: "Hour Management",
-      url: "/dashboard",
+      url: "/hours",
       icon: Clock,
       isActive: false,
     },
@@ -58,10 +58,13 @@ function SidebarTitle() {
   const isCollapsed = state === "collapsed"
 
   return (
-    <div className="flex items-center gap-2 px-2 py-3">
-      <div className="relative flex items-center justify-center">
-        <Clock className="size-5 text-sidebar-foreground" />
-        <Sparkles className="absolute -right-0.5 -top-0.5 size-3 text-sidebar-primary" />
+    <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:p-0!">
+      <div className="relative flex items-center justify-center rounded-lg">
+        <img
+          src="/imgs/logos/hg_logo.png"
+          alt="HourGenie"
+          className="size-8 object-contain rounded-lg"
+        />
       </div>
       {!isCollapsed && (
         <span className="text-sidebar-foreground font-semibold text-base">

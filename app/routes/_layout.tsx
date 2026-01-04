@@ -1,3 +1,4 @@
+import React from "react";
 import { Outlet, useLocation, Link } from "react-router";
 import { AppSidebar } from "~/components/app-sidebar";
 import {
@@ -18,18 +19,50 @@ import { ProtectedRoute } from "~/components/protected-route";
 
 // Route to breadcrumb label mapping
 const routeLabels: Record<string, string> = {
-  "/dashboard": "Dashboard",
+  "/hours": "Hour Management",
   "/account": "Account",
   "/integrations": "Integrations",
   "/settings": "Settings",
+};
+
+// Integration ID to name mapping
+const integrationNames: Record<string, string> = {
+  iframe: "iframe",
+  wix: "Wix",
+  framer: "Framer",
+  squarespace: "Squarespace",
+  wordpress: "WordPress",
+  webflow: "Webflow",
+  "apple-maps": "Apple Maps",
+  "google-maps": "Google Maps",
+  yelp: "Yelp",
 };
 
 export default function Layout() {
   const location = useLocation();
   const pathname = location.pathname;
 
-  // Get the current page label
-  const currentPageLabel = routeLabels[pathname] || "Dashboard";
+  // Build breadcrumbs from URL path
+  const pathSegments = pathname.split("/").filter(Boolean);
+  const breadcrumbs = pathSegments.map((segment, index) => {
+    const path = "/" + pathSegments.slice(0, index + 1).join("/");
+    const isLast = index === pathSegments.length - 1;
+    
+    // Get label for this segment
+    let label: string;
+    if (index === 0) {
+      // First segment - use route label mapping
+      label = routeLabels[path] || segment;
+    } else if (path.startsWith("/integrations/")) {
+      // Integration detail page - use integration name mapping
+      label = integrationNames[segment] || segment;
+    } else {
+      // Other nested segments - use segment as-is or capitalize
+      label = segment;
+    }
+
+    return { path, label, isLast };
+  });
 
   return (
     <ProtectedRoute>
@@ -45,23 +78,20 @@ export default function Layout() {
               />
               <Breadcrumb>
                 <BreadcrumbList>
-                  {pathname === "/dashboard" ? (
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>Dashboard</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  ) : (
-                    <>
-                      <BreadcrumbItem className="hidden md:block">
-                        <BreadcrumbLink asChild>
-                          <Link to="/dashboard">Dashboard</Link>
-                        </BreadcrumbLink>
+                  {breadcrumbs.map((crumb, index) => (
+                    <React.Fragment key={crumb.path}>
+                      {index > 0 && <BreadcrumbSeparator className="hidden md:block" />}
+                      <BreadcrumbItem className={index < breadcrumbs.length - 1 ? "hidden md:block" : ""}>
+                        {crumb.isLast ? (
+                          <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                        ) : (
+                          <BreadcrumbLink asChild>
+                            <Link to={crumb.path}>{crumb.label}</Link>
+                          </BreadcrumbLink>
+                        )}
                       </BreadcrumbItem>
-                      <BreadcrumbSeparator className="hidden md:block" />
-                      <BreadcrumbItem>
-                        <BreadcrumbPage>{currentPageLabel}</BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </>
-                  )}
+                    </React.Fragment>
+                  ))}
                 </BreadcrumbList>
               </Breadcrumb>
             </div>

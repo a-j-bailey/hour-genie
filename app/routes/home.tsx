@@ -28,7 +28,7 @@ export default function Home() {
             <div className="flex items-center gap-4">
               {user ? (
                 <Button asChild>
-                  <Link to="/dashboard">Dashboard</Link>
+                  <Link to="/hours">Dashboard</Link>
                 </Button>
               ) : (
                 <>
@@ -68,7 +68,7 @@ export default function Home() {
             )}
             {user && (
               <Button asChild size="lg" className="text-lg px-8">
-                <Link to="/dashboard">Go to Dashboard</Link>
+                <Link to="/hours">Go to Dashboard</Link>
               </Button>
             )}
           </div>

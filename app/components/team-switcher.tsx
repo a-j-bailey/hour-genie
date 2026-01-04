@@ -1,6 +1,3 @@
-"use client"
-
-import * as React from "react"
 import { ChevronsUpDown, Plus, Building2 } from "lucide-react"
 import { useNavigate } from "react-router"
 
@@ -58,7 +55,7 @@ export function TeamSwitcher() {
         <SidebarMenuItem>
           <SidebarMenuButton
             size="lg"
-            onClick={() => navigate("/dashboard", { state: { openCreateBusiness: true } })}
+            onClick={() => navigate("/hours", { state: { openCreateBusiness: true } })}
             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
             <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
@@ -118,7 +115,7 @@ export function TeamSwitcher() {
             </DropdownMenuLabel>
             {businesses.length === 0 ? (
               <DropdownMenuItem
-                onClick={() => navigate("/dashboard", { state: { openCreateBusiness: true } })}
+                onClick={() => navigate("/hours", { state: { openCreateBusiness: true } })}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
@@ -149,7 +146,7 @@ export function TeamSwitcher() {
                 ))}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => navigate("/dashboard", { state: { openCreateBusiness: true } })}
+                  onClick={() => navigate("/hours", { state: { openCreateBusiness: true } })}
                   className="gap-2 p-2"
                 >
                   <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
