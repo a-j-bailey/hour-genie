@@ -1,5 +1,6 @@
 import { createSupabaseClient } from "../utils/supabase";
 import { getAuthenticatedUser } from "../utils/auth";
+import type { DayHours } from "./businesses";
 
 interface Env {
   SUPABASE_URL: string;
@@ -11,11 +12,8 @@ export interface HoursOverride {
   business_id: string;
   start_date: string; // ISO date string (YYYY-MM-DD)
   end_date: string; // ISO date string (YYYY-MM-DD)
-  day_of_week: number; // 0-6
-  is_open: boolean;
-  is_open_24_7: boolean;
-  open_time: string | null; // "HH:MM" format
-  close_time: string | null; // "HH:MM" format
+  title?: string | null; // Optional title for the override (e.g., "Christmas", "Thanksgiving")
+  hours: DayHours[]; // Complete week schedule (7 days, matching default_hours format)
   created_at?: string;
   created_by?: string;
   updated_at?: string;
@@ -83,7 +81,7 @@ export async function handleGet(request: Request, env: Env, businessId: string):
       query = query.lte("start_date", endDateFilter);
     }
 
-    query = query.order("start_date", { ascending: true }).order("day_of_week", { ascending: true });
+    query = query.order("start_date", { ascending: true });
 
     const { data, error } = await query;
 
@@ -129,7 +127,7 @@ export async function handlePost(request: Request, env: Env, businessId: string)
     }
 
     const body = await request.json();
-    const { start_date, end_date, days } = body; // days is array of {day_of_week, is_open, is_open_24_7, open_time, close_time}
+    const { start_date, end_date, title, hours } = body; // hours is array of DayHours (7 days, matching default_hours format)
 
     if (!start_date || !end_date) {
       return new Response(
@@ -138,9 +136,9 @@ export async function handlePost(request: Request, env: Env, businessId: string)
       );
     }
 
-    if (!days || !Array.isArray(days) || days.length === 0) {
+    if (!hours || !Array.isArray(hours) || hours.length !== 7) {
       return new Response(
-        JSON.stringify({ error: "days array is required and must not be empty" }),
+        JSON.stringify({ error: "hours array is required and must contain exactly 7 days" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -172,39 +170,45 @@ export async function handlePost(request: Request, env: Env, businessId: string)
       );
     }
 
-    // Validate and prepare override records
-    const overridesToInsert = days.map((day: any) => {
+    // Validate hours structure (must be 7 days, matching default_hours format)
+    for (let i = 0; i < 7; i++) {
+      const day = hours[i];
       if (
         typeof day.day_of_week !== "number" ||
-        day.day_of_week < 0 ||
-        day.day_of_week > 6 ||
+        day.day_of_week !== i ||
         typeof day.is_open !== "boolean" ||
-        typeof day.is_open_24_7 !== "boolean"
+        typeof day.is_open_24_7 !== "boolean" ||
+        (day.open_time !== null && typeof day.open_time !== "string") ||
+        (day.close_time !== null && typeof day.close_time !== "string")
       ) {
-        throw new Error("Invalid day structure");
+        return new Response(
+          JSON.stringify({ error: `Invalid hours structure at day ${i}. Each day must have day_of_week matching its index, is_open, is_open_24_7, and optional open_time/close_time` }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
       }
 
       if (day.is_open_24_7 && !day.is_open) {
-        throw new Error("is_open_24_7 can only be true when is_open is true");
+        return new Response(
+          JSON.stringify({ error: `is_open_24_7 can only be true when is_open is true (day ${i})` }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
       }
+    }
 
-      return {
-        business_id: businessId,
-        start_date: start_date,
-        end_date: end_date,
-        day_of_week: day.day_of_week,
-        is_open: day.is_open,
-        is_open_24_7: day.is_open_24_7 || false,
-        open_time: day.open_time || null,
-        close_time: day.close_time || null,
-        created_by: user.userId,
-        updated_by: user.userId,
-      };
-    });
+    // Insert single override record with complete week schedule
+    const overrideToInsert = {
+      business_id: businessId,
+      start_date: start_date,
+      end_date: end_date,
+      title: title || null,
+      hours: hours,
+      created_by: user.userId,
+      updated_by: user.userId,
+    };
 
     const { data, error } = await supabase
       .from("hours_overrides")
-      .insert(overridesToInsert)
+      .insert(overrideToInsert)
       .select();
 
     if (error) {
@@ -250,7 +254,7 @@ export async function handlePut(request: Request, env: Env, overrideId: string):
     }
 
     const body = await request.json();
-    const { start_date, end_date, day_of_week, is_open, is_open_24_7, open_time, close_time } = body;
+    const { start_date, end_date, title, hours } = body;
 
     const supabase = createSupabaseClient(env);
 
@@ -295,13 +299,37 @@ export async function handlePut(request: Request, env: Env, overrideId: string):
       }
     }
 
-    // Validate 24/7 constraint
-    if (is_open_24_7 !== undefined && is_open !== undefined) {
-      if (is_open_24_7 && !is_open) {
+    // Validate hours if provided
+    if (hours !== undefined) {
+      if (!Array.isArray(hours) || hours.length !== 7) {
         return new Response(
-          JSON.stringify({ error: "is_open_24_7 can only be true when is_open is true" }),
+          JSON.stringify({ error: "hours array must contain exactly 7 days" }),
           { status: 400, headers: { "Content-Type": "application/json" } }
         );
+      }
+
+      for (let i = 0; i < 7; i++) {
+        const day = hours[i];
+        if (
+          typeof day.day_of_week !== "number" ||
+          day.day_of_week !== i ||
+          typeof day.is_open !== "boolean" ||
+          typeof day.is_open_24_7 !== "boolean" ||
+          (day.open_time !== null && typeof day.open_time !== "string") ||
+          (day.close_time !== null && typeof day.close_time !== "string")
+        ) {
+          return new Response(
+            JSON.stringify({ error: `Invalid hours structure at day ${i}` }),
+            { status: 400, headers: { "Content-Type": "application/json" } }
+          );
+        }
+
+        if (day.is_open_24_7 && !day.is_open) {
+          return new Response(
+            JSON.stringify({ error: `is_open_24_7 can only be true when is_open is true (day ${i})` }),
+            { status: 400, headers: { "Content-Type": "application/json" } }
+          );
+        }
       }
     }
 
@@ -309,19 +337,8 @@ export async function handlePut(request: Request, env: Env, overrideId: string):
     const updateData: any = { updated_by: user.userId };
     if (start_date !== undefined) updateData.start_date = start_date;
     if (end_date !== undefined) updateData.end_date = end_date;
-    if (day_of_week !== undefined) {
-      if (day_of_week < 0 || day_of_week > 6) {
-        return new Response(
-          JSON.stringify({ error: "day_of_week must be 0-6" }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
-        );
-      }
-      updateData.day_of_week = day_of_week;
-    }
-    if (is_open !== undefined) updateData.is_open = is_open;
-    if (is_open_24_7 !== undefined) updateData.is_open_24_7 = is_open_24_7;
-    if (open_time !== undefined) updateData.open_time = open_time || null;
-    if (close_time !== undefined) updateData.close_time = close_time || null;
+    if (title !== undefined) updateData.title = title || null;
+    if (hours !== undefined) updateData.hours = hours;
 
     const { data, error } = await supabase
       .from("hours_overrides")

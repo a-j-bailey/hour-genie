@@ -61,43 +61,37 @@ function getCurrentWeekHours(
   overrides: HoursOverride[]
 ): DayHours[] {
   const weekStart = getWeekStart(new Date());
-  const currentWeek: DayHours[] = [];
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  const weekStartStr = formatDate(weekStart);
+  const weekEndStr = formatDate(weekEnd);
 
-  for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
-    const currentDate = new Date(weekStart);
-    currentDate.setDate(weekStart.getDate() + dayOfWeek);
-    const dateStr = formatDate(currentDate);
-
-    // Find applicable overrides for this day
-    const applicableOverrides = overrides.filter(
-      (override) =>
-        override.day_of_week === dayOfWeek &&
-        isDateInRange(currentDate, override.start_date, override.end_date)
+  // Find applicable overrides that overlap with the current week
+  const applicableOverrides = overrides.filter((override) => {
+    // Check if override date range overlaps with current week
+    return (
+      (override.start_date <= weekEndStr && override.end_date >= weekStartStr)
     );
+  });
 
-    // Use the most recent override if any, otherwise use default
-    let dayHours: DayHours = defaultHours[dayOfWeek];
-    if (applicableOverrides.length > 0) {
-      // Sort by created_at descending to get most recent
-      const sortedOverrides = [...applicableOverrides].sort((a, b) => {
-        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return bTime - aTime;
-      });
-      const override = sortedOverrides[0];
-      dayHours = {
-        day_of_week: dayOfWeek,
-        is_open: override.is_open,
-        is_open_24_7: override.is_open_24_7,
-        open_time: override.open_time,
-        close_time: override.close_time,
-      };
+  // Use the most recent override if any, otherwise use default
+  if (applicableOverrides.length > 0) {
+    // Sort by created_at descending to get most recent
+    const sortedOverrides = [...applicableOverrides].sort((a, b) => {
+      const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return bTime - aTime;
+    });
+    const override = sortedOverrides[0];
+    
+    // Return the complete week schedule from the override
+    if (override.hours && Array.isArray(override.hours) && override.hours.length === 7) {
+      return override.hours;
     }
-
-    currentWeek.push(dayHours);
   }
 
-  return currentWeek;
+  // No applicable override, return default hours
+  return defaultHours;
 }
 
 /**

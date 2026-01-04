@@ -5,7 +5,7 @@ export default [
   route("login", "routes/login.tsx"),
   route("embed/hours", "routes/embed.hours.tsx"),
   layout("routes/_layout.tsx", [
-    route("hours", "routes/dashboard.tsx"),
+    route("hours", "routes/hour_management.tsx"),
     route("account", "routes/account.tsx"),
     route("integrations", "routes/integrations.tsx", [
       route(":id", "routes/integrations.$id.tsx"),
