@@ -306,7 +306,7 @@ export default function Billing() {
             <CardContent className="flex flex-col flex-1 space-y-4">
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-bold">$</span>
-                <span className="text-4xl font-bold">29</span>
+                <span className="text-4xl font-bold">5</span>
                 <span className="text-muted-foreground">/month</span>
               </div>
               <Button
@@ -336,7 +336,7 @@ export default function Billing() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl">Annual</CardTitle>
                 <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
-                  Save 20%
+                  Save $10
                 </span>
               </div>
               <CardDescription>
@@ -346,14 +346,8 @@ export default function Billing() {
             <CardContent className="flex flex-col flex-1 space-y-4">
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-bold">$</span>
-                <span className="text-4xl font-bold">279</span>
+                <span className="text-4xl font-bold">50</span>
                 <span className="text-muted-foreground">/year</span>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                <span className="line-through">$348</span>{" "}
-                <span className="text-green-600 dark:text-green-400 font-medium">
-                  Save $69/year
-                </span>
               </div>
               <Button
                 onClick={() => handleCreatePaymentLink("annual")}
