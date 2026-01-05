@@ -47,7 +47,7 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="flex-1 flex items-center justify-center px-4 py-4 h-screen">
+      <section className="flex-1 flex items-center justify-center px-4 py-8 h-screen">
         <div className="max-w-4xl w-full text-center space-y-4">
           <div className="flex justify-center mb-4 relative">
             <div className="relative inline-block">
@@ -155,8 +155,30 @@ export default function Home() {
             </p>
           </div>
           
-          {/* Website Integrations */}
+          {/* Platform Integrations */}
           <div className="mb-12">
+            <h3 className="text-xl font-semibold mb-6 text-center">Maps & Directories</h3>
+            <div className="grid md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+              <Card className="flex flex-col items-center justify-center p-6 hover:border-primary transition-colors">
+                <img src="/imgs/logos/google_maps.svg" alt="Google Maps" className="h-12 w-12 mb-3 object-contain" />
+                <CardTitle className="text-base text-center">Google Maps</CardTitle>
+                <Badge variant="secondary" className="mt-2 text-xs">Coming Soon</Badge>
+              </Card>
+              <Card className="flex flex-col items-center justify-center p-6 hover:border-primary transition-colors">
+                <img src="/imgs/logos/apple_maps.png" alt="Apple Maps" className="h-12 w-12 mb-3 object-contain" />
+                <CardTitle className="text-base text-center">Apple Maps</CardTitle>
+                <Badge variant="secondary" className="mt-2 text-xs">Coming Soon</Badge>
+              </Card>
+              <Card className="flex flex-col items-center justify-center p-6 hover:border-primary transition-colors">
+                <img src="/imgs/logos/yelp.png" alt="Yelp" className="h-12 w-12 mb-3 object-contain" />
+                <CardTitle className="text-base text-center">Yelp</CardTitle>
+                <Badge variant="secondary" className="mt-2 text-xs">Coming Soon</Badge>
+              </Card>
+            </div>
+          </div>
+
+          {/* Website Integrations */}
+          <div>
             <h3 className="text-xl font-semibold mb-6 text-center">Website Platforms</h3>
             <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
               <Card className="flex flex-col items-center justify-center p-6 hover:border-primary transition-colors">
@@ -187,28 +209,6 @@ export default function Home() {
               <Card className="flex flex-col items-center justify-center p-6 hover:border-primary transition-colors">
                 <img src="/imgs/logos/webflow.png" alt="Webflow" className="h-12 w-12 mb-3 object-contain" />
                 <CardTitle className="text-base text-center">Webflow</CardTitle>
-                <Badge variant="secondary" className="mt-2 text-xs">Coming Soon</Badge>
-              </Card>
-            </div>
-          </div>
-
-          {/* Platform Integrations */}
-          <div>
-            <h3 className="text-xl font-semibold mb-6 text-center">Maps & Directories</h3>
-            <div className="grid md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-              <Card className="flex flex-col items-center justify-center p-6 hover:border-primary transition-colors">
-                <img src="/imgs/logos/google_maps.svg" alt="Google Maps" className="h-12 w-12 mb-3 object-contain" />
-                <CardTitle className="text-base text-center">Google Maps</CardTitle>
-                <Badge variant="secondary" className="mt-2 text-xs">Coming Soon</Badge>
-              </Card>
-              <Card className="flex flex-col items-center justify-center p-6 hover:border-primary transition-colors">
-                <img src="/imgs/logos/apple_maps.png" alt="Apple Maps" className="h-12 w-12 mb-3 object-contain" />
-                <CardTitle className="text-base text-center">Apple Maps</CardTitle>
-                <Badge variant="secondary" className="mt-2 text-xs">Coming Soon</Badge>
-              </Card>
-              <Card className="flex flex-col items-center justify-center p-6 hover:border-primary transition-colors">
-                <img src="/imgs/logos/yelp.png" alt="Yelp" className="h-12 w-12 mb-3 object-contain" />
-                <CardTitle className="text-base text-center">Yelp</CardTitle>
                 <Badge variant="secondary" className="mt-2 text-xs">Coming Soon</Badge>
               </Card>
             </div>
