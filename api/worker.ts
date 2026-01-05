@@ -49,6 +49,11 @@ import {
   handlePost as handlePostWebhook,
   handleOptions as handleOptionsWebhook,
 } from "./routes/stripe-webhook";
+import {
+  handlePost as handlePostEmailWebhook,
+  handleOptions as handleOptionsEmailWebhook,
+} from "./routes/email-webhook";
+import { handleScheduled } from "./scheduled/holiday-reminders";
 
 interface Env {
   SUPABASE_URL: string;
@@ -61,6 +66,10 @@ interface Env {
   STRIPE_ANNUAL_PRICE_ID?: string;
   STRIPE_MONTHLY_PAYMENT_LINK_ID?: string;
   STRIPE_ANNUAL_PAYMENT_LINK_ID?: string;
+  SENDGRID_API_KEY?: string;
+  SENDGRID_FROM_EMAIL?: string;
+  SENDGRID_REPLY_TO_EMAIL?: string;
+  XAI_API_KEY?: string;
 }
 
 export default {
@@ -74,6 +83,8 @@ export default {
       // Return appropriate OPTIONS handler based on path
       if (path.startsWith("/api/stripe-webhook")) {
         return handleOptionsWebhook();
+      } else if (path.startsWith("/api/email-webhook")) {
+        return handleOptionsEmailWebhook();
       } else if (path.startsWith("/api/subscriptions")) {
         return handleOptionsSubscriptions();
       } else if (path.startsWith("/api/embed")) {
@@ -94,6 +105,18 @@ export default {
           "Access-Control-Allow-Headers": "Content-Type, Authorization",
         },
       });
+    }
+
+    // Route: /api/email-webhook (public endpoint for SendGrid Inbound Parse)
+    if (path === "/api/email-webhook") {
+      if (method === "POST") {
+        return handlePostEmailWebhook(request, env);
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Method not allowed" }),
+          { status: 405, headers: { "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Route: /api/stripe-webhook (public endpoint, signature verified)
@@ -253,6 +276,11 @@ export default {
       JSON.stringify({ error: "Not found" }),
       { status: 404, headers: { "Content-Type": "application/json" } }
     );
+  },
+
+  // Scheduled event handler for cron jobs
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(handleScheduled(event, env));
   },
 };
 

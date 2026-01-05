@@ -16,7 +16,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Settings() {
-  const { session } = useAuth();
+  const { session, user } = useAuth();
   const { selectedBusiness, refreshBusinesses } = useBusiness();
   const apiUrl = import.meta.env.VITE_API_URL || "";
 
@@ -110,15 +110,15 @@ export default function Settings() {
         </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Business Information</CardTitle>
-          <CardDescription>
-            Update your business name, address, email, and phone number
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSave} className="space-y-4">
+      <form onSubmit={handleSave} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Business Information</CardTitle>
+            <CardDescription>
+              Update your business name and address
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Business Name *</Label>
               <Input
@@ -140,6 +140,17 @@ export default function Settings() {
                 placeholder="123 Main St, City, State ZIP"
               />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Notification Settings</CardTitle>
+            <CardDescription>
+              You can change the contact email for this business here, if no email is provided, your account email will be used.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -147,10 +158,10 @@ export default function Settings() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="business@example.com"
+                placeholder={user?.email || "business@example.com"}
               />
             </div>
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="phone">Phone Number</Label>
               <Input
                 id="phone"
@@ -163,13 +174,14 @@ export default function Settings() {
                 placeholder="+1 (555) 123-4567"
                 maxLength={17}
               />
-            </div>
-            <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+            </div> */}
+          </CardContent>
+        </Card>
+
+        <Button type="submit" disabled={saving}>
+          {saving ? "Saving..." : "Save Changes"}
+        </Button>
+      </form>
     </div>
   );
 }
