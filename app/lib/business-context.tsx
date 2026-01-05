@@ -73,11 +73,13 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         }
         setError(null);
       } else {
-        setError("Failed to load businesses");
+        const errorMsg = await response.text();
+        setError(errorMsg || "Failed to load businesses");
       }
     } catch (err) {
       console.error("Error fetching businesses:", err);
-      setError("Failed to load businesses");
+      const errorMsg = "Failed to load businesses. Please check your connection.";
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -109,6 +111,9 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
             const data = await response.json();
             setSelectedBusiness(data);
             localStorage.setItem("selectedBusinessId", selectedBusinessId);
+          } else {
+            const errorMsg = await response.text();
+            setError(errorMsg || "Failed to load business details");
           }
         } catch (err) {
           console.error("Error fetching business:", err);

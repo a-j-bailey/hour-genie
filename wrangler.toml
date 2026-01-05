@@ -12,7 +12,12 @@
 
 name = "hour-genie-api"
 main = "api/worker.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Build configuration
+[build]
+command = ""
 
 # Cron trigger for holiday reminder emails (runs daily at 9 AM UTC)
 [triggers]
