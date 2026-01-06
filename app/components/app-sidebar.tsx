@@ -12,6 +12,7 @@ import { NavMain } from "~/components/nav-main"
 import { NavProjects } from "~/components/nav-projects"
 import { NavUser } from "~/components/nav-user"
 import { TeamSwitcher } from "~/components/team-switcher"
+import { useBusiness } from "~/lib/business-context"
 import {
   Sidebar,
   SidebarContent,
@@ -77,6 +78,8 @@ function SidebarTitle() {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { selectedBusiness } = useBusiness()
+  
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -85,7 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        {selectedBusiness && <NavMain items={data.navMain} />}
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <Separator />
