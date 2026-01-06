@@ -93,8 +93,8 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-950">
+      <Card className="w-full max-w-md bg-gray-200">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">
             {isSignUp ? "Create an account" : "Welcome back"}
@@ -116,6 +116,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="bg-gray-100 border-gray-400 shadow-none"
               />
             </div>
             <div className="space-y-2">
@@ -127,6 +128,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                className="bg-gray-100 border-gray-400 shadow-none"
               />
             </div>
             {isSignUp && (
@@ -140,7 +142,7 @@ export default function Login() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     minLength={6}
-                    className={passwordsMatch ? "pr-9" : ""}
+                    className={passwordsMatch ? "pr-9 bg-gray-100 border-gray-400 shadow-none" : "bg-gray-100 border-gray-400 shadow-none"}
                   />
                   {passwordsMatch && (
                     <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-600 dark:text-green-500" />
