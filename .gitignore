@@ -3,6 +3,7 @@
 /node_modules/
 .wrangler/
 api/node_modules/
+.dev.vars
 
 # React Router
 /.react-router/
