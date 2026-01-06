@@ -4,14 +4,14 @@
 # 1. Install Wrangler CLI: npm install -g wrangler
 # 2. Login: wrangler login
 # 3. Update name and account_id below
-# 4. Deploy: wrangler deploy
+# 4. Deploy from the /api directory: wrangler deploy
 #
 # Set environment variables using:
 # wrangler secret put SUPABASE_URL
 # wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 
 name = "hour-genie-api"
-main = "api/worker.ts"
+main = "worker.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
@@ -34,3 +34,4 @@ STRIPE_MONTHLY_PAYMENT_LINK_ID = "plink_1SlzrEAKZK3mEAtnPFGKCWup"
 STRIPE_ANNUAL_PAYMENT_LINK_ID = "plink_1SlztzAKZK3mEAtniH4fKKl0"
 SENDGRID_FROM_EMAIL = "adam@hourgenie.com"
 SENDGRID_REPLY_TO_EMAIL = "adam@hourgenie.com"
+

@@ -16,7 +16,7 @@ To run the API locally for development:
    wrangler login
    ```
 
-3. **Create a `.dev.vars` file** in the project root (same directory as `wrangler.toml`):
+3. **Create a `.dev.vars` file** in the `/api` directory (same directory as `wrangler.toml`):
    ```env
    SUPABASE_URL=your_supabase_project_url
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
@@ -34,8 +34,9 @@ To run the API locally for development:
    
    > **Note**: `.dev.vars` is automatically ignored by git. Replace the values with your actual credentials. Only include the variables you need for your setup.
 
-4. **Run the API locally**:
+4. **Run the API locally** (from the `/api` directory):
    ```bash
+   cd api
    wrangler dev
    ```
    
@@ -87,9 +88,11 @@ To run the API locally for development:
 
 #### Step 2: Set Required Environment Variables (Secrets)
 
-Set the required secrets for your Worker. These are encrypted and stored securely by Cloudflare:
+Set the required secrets for your Worker. These are encrypted and stored securely by Cloudflare. Run these commands from the `/api` directory:
 
 ```bash
+cd api
+
 # Required secrets
 wrangler secret put SUPABASE_URL
 wrangler secret put SUPABASE_SERVICE_ROLE_KEY
@@ -113,9 +116,10 @@ For each command, you'll be prompted to enter the value. The values are hidden a
 
 #### Step 3: Deploy the Worker
 
-From the project root directory, deploy the worker:
+From the `/api` directory, deploy the worker:
 
 ```bash
+cd api
 wrangler deploy
 ```
 
@@ -164,21 +168,24 @@ If you're using SendGrid for email webhooks:
 
 ### Updating the Deployment
 
-To update your worker after making changes:
+To update your worker after making changes (from the `/api` directory):
 
 ```bash
+cd api
 wrangler deploy
 ```
 
 To view logs in real-time:
 
 ```bash
+cd api
 wrangler tail
 ```
 
 To view specific deployment logs:
 
 ```bash
+cd api
 wrangler deployments list
 ```
 
