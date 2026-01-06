@@ -284,7 +284,7 @@ export default function Home() {
                     <span className="text-sm text-gray-300">Multi-business support</span>
                   </li>
                 </ul>
-                {!user ? (
+                {/* {!user ? (
                   <Button asChild size="lg" className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white border-gray-600" variant="outline">
                     <Link to="/login">Get Started</Link>
                   </Button>
@@ -292,7 +292,7 @@ export default function Home() {
                   <Button asChild size="lg" className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white border-gray-600" variant="outline">
                     <Link to="/billing">View Plans</Link>
                   </Button>
-                )}
+                )} */}
               </CardContent>
             </Card>
 
@@ -334,7 +334,7 @@ export default function Home() {
                     <span className="text-sm text-gray-300">Priority support</span>
                   </li>
                 </ul>
-                {!user ? (
+                {/* {!user ? (
                   <Button asChild size="lg" className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white">
                     <Link to="/login">Get Started</Link>
                   </Button>
@@ -342,7 +342,7 @@ export default function Home() {
                   <Button asChild size="lg" className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white">
                     <Link to="/billing">View Plans</Link>
                   </Button>
-                )}
+                )} */}
               </CardContent>
             </Card>
           </div>
