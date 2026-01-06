@@ -1,5 +1,5 @@
-import React from "react";
-import { Outlet, useLocation, Link } from "react-router";
+import React, { useEffect, useState } from "react";
+import { Outlet, useLocation, Link, useNavigate } from "react-router";
 import { AppSidebar } from "~/components/app-sidebar";
 import {
   Breadcrumb,
@@ -16,6 +16,7 @@ import {
   SidebarTrigger,
 } from "~/components/ui/sidebar";
 import { ProtectedRoute } from "~/components/protected-route";
+import { useOnboardingStatus } from "~/lib/use-onboarding";
 
 // Route to breadcrumb label mapping
 const routeLabels: Record<string, string> = {
@@ -41,7 +42,16 @@ const integrationNames: Record<string, string> = {
 
 export default function Layout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const pathname = location.pathname;
+  const { needsOnboarding, loading: onboardingLoading } = useOnboardingStatus();
+
+  // Redirect to onboarding if user needs it and is not already on onboarding page
+  useEffect(() => {
+    if (!onboardingLoading && needsOnboarding && pathname !== "/onboarding") {
+      navigate("/onboarding");
+    }
+  }, [needsOnboarding, onboardingLoading, pathname, navigate]);
 
   // Build breadcrumbs from URL path
   const pathSegments = pathname.split("/").filter(Boolean);

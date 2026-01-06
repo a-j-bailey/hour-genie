@@ -27,6 +27,8 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
+      // For existing users, check if they need onboarding
+      // New signups will be redirected to onboarding in handleSubmit
       navigate("/hours");
     }
   }, [user, navigate]);
@@ -67,9 +69,8 @@ export default function Login() {
           setLoading(false);
         } else if (session) {
           // User is automatically authenticated (email confirmation disabled)
-          // The useEffect will catch the user state change and redirect
-          // But we can also navigate immediately since we have a session
-          navigate("/hours");
+          // New users should go through onboarding
+          navigate("/onboarding");
         } else {
           // Email confirmation required - show message
           setError("Please check your email to confirm your account before signing in.");
@@ -82,7 +83,9 @@ export default function Login() {
           setError(error.message);
           setLoading(false);
         } else {
-          // Sign in successful - useEffect will handle redirect
+          // Sign in successful - check if user needs onboarding
+          // The useEffect will handle redirect, but we'll check onboarding status
+          // For now, redirect to /hours and let the layout handle onboarding check
           navigate("/hours");
         }
       }

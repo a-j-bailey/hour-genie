@@ -7,9 +7,6 @@ interface Env {
   SUPABASE_SERVICE_ROLE_KEY: string;
   STRIPE_SECRET_KEY: string;
   STRIPE_PAYMENT_LINK_ID?: string;
-  STRIPE_PRICE_ID?: string;
-  STRIPE_MONTHLY_PRICE_ID?: string;
-  STRIPE_ANNUAL_PRICE_ID?: string;
   STRIPE_MONTHLY_PAYMENT_LINK_ID?: string;
   STRIPE_ANNUAL_PAYMENT_LINK_ID?: string;
 }
@@ -132,16 +129,13 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
     const body = await request.json().catch(() => ({}));
     const billingInterval = body.billing_interval || "monthly"; // default to monthly
 
-    // Determine payment link ID or price ID based on billing interval
+    // Determine payment link ID based on billing interval
     let paymentLinkId: string | undefined;
-    let priceId: string | undefined;
 
     if (billingInterval === "monthly") {
       paymentLinkId = env.STRIPE_MONTHLY_PAYMENT_LINK_ID || env.STRIPE_PAYMENT_LINK_ID;
-      priceId = env.STRIPE_MONTHLY_PRICE_ID || env.STRIPE_PRICE_ID;
     } else if (billingInterval === "annual") {
       paymentLinkId = env.STRIPE_ANNUAL_PAYMENT_LINK_ID;
-      priceId = env.STRIPE_ANNUAL_PRICE_ID;
     } else {
       return new Response(
         JSON.stringify({ error: "Invalid billing_interval. Must be 'monthly' or 'annual'." }),
@@ -149,70 +143,20 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
       );
     }
 
-    // If payment link ID is provided, use it directly
-    if (paymentLinkId) {
-      const paymentLink = await stripe.paymentLinks.retrieve(paymentLinkId);
-      return new Response(
-        JSON.stringify({ url: paymentLink.url }),
-        {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
-      );
-    }
-
-    // Otherwise, create a checkout session using price ID
-
-    if (!priceId) {
+    // Payment link ID is required
+    if (!paymentLinkId) {
       return new Response(
         JSON.stringify({ 
-          error: `Price ID is required for ${billingInterval} subscription. Please set STRIPE_${billingInterval.toUpperCase()}_PRICE_ID or STRIPE_${billingInterval.toUpperCase()}_PAYMENT_LINK_ID in environment.` 
+          error: `Payment link ID is required for ${billingInterval} subscription. Please set STRIPE_${billingInterval.toUpperCase()}_PAYMENT_LINK_ID in environment.` 
         }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Get or create Stripe customer
-    let customerId: string;
-    if (existingSubscription?.stripe_customer_id) {
-      customerId = existingSubscription.stripe_customer_id;
-    } else {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: {
-          user_id: user.userId,
-        },
-      });
-      customerId = customer.id;
-    }
-
-    // Create checkout session
-    const url = new URL(request.url);
-    const baseUrl = `${url.protocol}//${url.host}`;
-    
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      mode: "subscription",
-      success_url: `${baseUrl}/billing?success=true`,
-      cancel_url: `${baseUrl}/billing?canceled=true`,
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      metadata: {
-        user_id: user.userId,
-      },
-    });
-
+    // Retrieve and return payment link URL
+    const paymentLink = await stripe.paymentLinks.retrieve(paymentLinkId);
     return new Response(
-      JSON.stringify({ url: session.url }),
+      JSON.stringify({ url: paymentLink.url }),
       {
         status: 200,
         headers: {

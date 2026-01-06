@@ -4,6 +4,7 @@ export default [
   index("routes/home.tsx"),
   route("login", "routes/login.tsx"),
   route("embed/hours", "routes/embed.hours.tsx"),
+  route("onboarding", "routes/onboarding.tsx"),
   layout("routes/_layout.tsx", [
     route("hours", "routes/hour_management.tsx"),
     route("account", "routes/account.tsx"),
