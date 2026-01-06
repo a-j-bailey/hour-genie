@@ -8,6 +8,9 @@ interface Env {
   STRIPE_WEBHOOK_SECRET: string;
 }
 
+const webCrypto = Stripe.createSubtleCryptoProvider();
+const fetchHttpClient = Stripe.createFetchHttpClient();
+
 /**
  * Handle POST request - Process Stripe webhook events
  */
@@ -21,8 +24,7 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
     }
 
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-      apiVersion: "2025-02-24.acacia",
-      httpClient: Stripe.createFetchHttpClient(),
+      httpClient: fetchHttpClient,
     });
 
     // Get the raw body for signature verification
@@ -41,7 +43,9 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
       event = await stripe.webhooks.constructEventAsync(
         body,
         signature,
-        env.STRIPE_WEBHOOK_SECRET
+        env.STRIPE_WEBHOOK_SECRET,
+        undefined,
+        webCrypto
       );
     } catch (err: any) {
       console.error("Webhook signature verification failed:", err.message);
