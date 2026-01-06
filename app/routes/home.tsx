@@ -245,7 +245,7 @@ export default function Home() {
       </section>
 
       {/* Pricing Section */}
-      {/* <section className="py-20 px-4 bg-gray-950">
+      <section className="py-20 px-4 bg-gray-950">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white">Simple, Transparent Pricing</h2>
@@ -347,7 +347,7 @@ export default function Home() {
             </Card>
           </div>
         </div>
-      </section> */}
+      </section>
 
       {/* CTA Section */}
       <section className="py-20 px-4 bg-primary text-primary-foreground relative h-[100vh] bg-cover bg-bottom bg-no-repeat"
