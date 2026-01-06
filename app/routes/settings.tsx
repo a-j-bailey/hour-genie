@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import type { Route } from "./+types/settings";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -69,10 +70,14 @@ export default function Settings() {
         setTimeout(() => setSuccess(null), 3000);
       } else {
         const errorData = await response.json();
-        setError(errorData.error || "Failed to update business settings");
+        const errorMessage = errorData.error || "Failed to update business settings";
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
-      setError("Failed to update business settings. Please try again.");
+      const errorMessage = "Failed to update business settings. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }

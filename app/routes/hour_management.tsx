@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
+import { toast } from "sonner";
 import type { Route } from "./+types/hour_management";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
@@ -157,9 +158,13 @@ function HourManagementContent() {
                     return override;
                 });
                 setOverrides(parsedOverrides);
+            } else {
+                const errorData = await response.json().catch(() => ({ error: "Failed to load hours overrides" }));
+                toast.error(errorData.error || "Failed to load hours overrides");
             }
         } catch (err) {
             console.error("Error fetching overrides:", err);
+            toast.error("Failed to load hours overrides. Please check your connection.");
         }
     };
 
@@ -201,10 +206,14 @@ function HourManagementContent() {
                 setTimeout(() => setSuccess(null), 3000);
             } else {
                 const errorData = await response.json();
-                setError(errorData.error || "Failed to create business");
+                const errorMessage = errorData.error || "Failed to create business";
+                setError(errorMessage);
+                toast.error(errorMessage);
             }
         } catch (err) {
-            setError("Failed to create business. Please try again.");
+            const errorMessage = "Failed to create business. Please try again.";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setSaving(false);
         }
@@ -240,10 +249,14 @@ function HourManagementContent() {
                 setTimeout(() => setSuccess(null), 3000);
             } else {
                 const errorData = await response.json();
-                setError(errorData.error || "Failed to update default hours");
+                const errorMessage = errorData.error || "Failed to update default hours";
+                setError(errorMessage);
+                toast.error(errorMessage);
             }
         } catch (err) {
-            setError("Failed to update default hours. Please try again.");
+            const errorMessage = "Failed to update default hours. Please try again.";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setSaving(false);
         }
@@ -363,10 +376,14 @@ function HourManagementContent() {
                 setTimeout(() => setSuccess(null), 3000);
             } else {
                 const errorData = await response.json();
-                setError(errorData.error || "Failed to create override");
+                const errorMessage = errorData.error || "Failed to create override";
+                setError(errorMessage);
+                toast.error(errorMessage);
             }
         } catch (err) {
-            setError("Failed to create override. Please try again.");
+            const errorMessage = "Failed to create override. Please try again.";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setSaving(false);
         }
@@ -439,10 +456,14 @@ function HourManagementContent() {
                 setTimeout(() => setSuccess(null), 3000);
             } else {
                 const errorData = await response.json();
-                setError(errorData.error || "Failed to update override");
+                const errorMessage = errorData.error || "Failed to update override";
+                setError(errorMessage);
+                toast.error(errorMessage);
             }
         } catch (err) {
-            setError("Failed to update override. Please try again.");
+            const errorMessage = "Failed to update override. Please try again.";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setSaving(false);
         }
@@ -468,10 +489,14 @@ function HourManagementContent() {
                 setTimeout(() => setSuccess(null), 3000);
             } else {
                 const errorData = await response.json();
-                setError(errorData.error || "Failed to delete override");
+                const errorMessage = errorData.error || "Failed to delete override";
+                setError(errorMessage);
+                toast.error(errorMessage);
             }
         } catch (err) {
-            setError("Failed to delete override. Please try again.");
+            const errorMessage = "Failed to delete override. Please try again.";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setSaving(false);
         }

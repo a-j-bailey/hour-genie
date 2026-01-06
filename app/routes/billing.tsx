@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import type { Route } from "./+types/billing";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -82,11 +83,15 @@ export default function Billing() {
         setSubscription(data.subscription);
       } else {
         const errorData = await response.json();
-        setError(errorData.error || "Failed to load subscription");
+        const errorMessage = errorData.error || "Failed to load subscription";
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       console.error("Error fetching subscription:", err);
-      setError("Failed to load subscription. Please try again.");
+      const errorMessage = "Failed to load subscription. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -116,15 +121,21 @@ export default function Billing() {
           // Redirect to Stripe payment link
           window.location.href = data.url;
         } else {
-          setError("No payment link received");
+          const errorMessage = "No payment link received";
+          setError(errorMessage);
+          toast.error(errorMessage);
         }
       } else {
         const errorData = await response.json();
-        setError(errorData.error || "Failed to create payment link");
+        const errorMessage = errorData.error || "Failed to create payment link";
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       console.error("Error creating payment link:", err);
-      setError("Failed to create payment link. Please try again.");
+      const errorMessage = "Failed to create payment link. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setActionLoading(false);
     }
@@ -152,15 +163,21 @@ export default function Billing() {
           // Redirect to Stripe Customer Portal
           window.location.href = data.url;
         } else {
-          setError("No portal URL received");
+          const errorMessage = "No portal URL received";
+          setError(errorMessage);
+          toast.error(errorMessage);
         }
       } else {
         const errorData = await response.json();
-        setError(errorData.error || "Failed to access customer portal");
+        const errorMessage = errorData.error || "Failed to access customer portal";
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       console.error("Error opening customer portal:", err);
-      setError("Failed to open customer portal. Please try again.");
+      const errorMessage = "Failed to open customer portal. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setActionLoading(false);
     }

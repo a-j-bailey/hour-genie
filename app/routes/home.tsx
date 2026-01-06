@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 import { Badge } from "~/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import { useAuth } from "~/lib/use-auth";
-import { Sparkles, Clock, Shield, Cloud, Calendar, Users, Zap, CalendarClock, Gift, Code, MessageSquare, Check } from "lucide-react";
+import { Sparkles, CalendarClock, Gift, Code, MessageSquare, Check } from "lucide-react";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -354,7 +354,7 @@ export default function Home() {
         style={{ backgroundImage: 'url(/imgs/streetscape.jpg)' }}
       >
         <div
-          className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black pointer-events-none"
+          className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-gray-950 pointer-events-none"
         ></div>
         <div
           className="absolute inset-0 pointer-events-none"
@@ -383,12 +383,12 @@ export default function Home() {
               </Button>
             )} */}
           </div>
-          <div 
-            style={{ 
+          <div
+            style={{
               backgroundImage: 'url(/imgs/are_you_open.jpg)',
               mixBlendMode: 'lighten'
-            }} 
-            className="pointer-events-none bg-contain bg-center bg-no-repeat z-10 w-full max-w-4xl mx-auto aspect-video brightness-200" 
+            }}
+            className="pointer-events-none bg-contain bg-center bg-no-repeat z-10 w-full max-w-4xl mx-auto aspect-video brightness-200"
           />
           <div className="pt-8 text-center text-sm text-gray-400 z-10">
             <p>&copy; {new Date().getFullYear()} Hour Genie. All rights reserved.</p>

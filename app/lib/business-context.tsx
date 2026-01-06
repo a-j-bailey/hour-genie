@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import { useAuth } from "./use-auth";
 
 export interface Business {
@@ -34,12 +35,27 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const fetchingRef = useRef(false);
+  const lastAccessTokenRef = useRef<string | null>(null);
 
-  const fetchBusinesses = async () => {
+  const fetchBusinesses = useCallback(async () => {
     if (!session?.access_token) {
       setLoading(false);
       return;
     }
+
+    // Prevent duplicate concurrent calls
+    if (fetchingRef.current) {
+      return;
+    }
+
+    // Prevent calling if access token hasn't changed
+    if (lastAccessTokenRef.current === session.access_token) {
+      return;
+    }
+
+    fetchingRef.current = true;
+    lastAccessTokenRef.current = session.access_token;
 
     try {
       setLoading(true);
@@ -74,36 +90,45 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         setError(null);
       } else {
         const errorMsg = await response.text();
-        setError(errorMsg || "Failed to load businesses");
+        const errorMessage = errorMsg || "Failed to load businesses";
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       console.error("Error fetching businesses:", err);
       const errorMsg = "Failed to load businesses. Please check your connection.";
       setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
-  };
+  }, [session?.access_token, apiUrl]);
 
   useEffect(() => {
-    if (session?.access_token) {
+    const accessToken = session?.access_token;
+    
+    if (accessToken) {
       fetchBusinesses();
     } else {
       setBusinesses([]);
       setSelectedBusinessId(null);
       setSelectedBusiness(null);
       setLoading(false);
+      lastAccessTokenRef.current = null;
     }
-  }, [session]);
+  }, [session?.access_token, apiUrl, fetchBusinesses]);
 
   // Fetch selected business details when ID changes
   useEffect(() => {
-    if (selectedBusinessId && session?.access_token) {
+    const accessToken = session?.access_token;
+    
+    if (selectedBusinessId && accessToken) {
       const fetchBusiness = async () => {
         try {
           const response = await fetch(`${apiUrl}/api/businesses/${selectedBusinessId}`, {
             headers: {
-              Authorization: `Bearer ${session.access_token}`,
+              Authorization: `Bearer ${accessToken}`,
             },
           });
 
@@ -113,10 +138,13 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
             localStorage.setItem("selectedBusinessId", selectedBusinessId);
           } else {
             const errorMsg = await response.text();
-            setError(errorMsg || "Failed to load business details");
+            const errorMessage = errorMsg || "Failed to load business details";
+            setError(errorMessage);
+            toast.error(errorMessage);
           }
         } catch (err) {
           console.error("Error fetching business:", err);
+          toast.error("Failed to load business details. Please check your connection.");
         }
       };
 
@@ -124,7 +152,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     } else {
       setSelectedBusiness(null);
     }
-  }, [selectedBusinessId, session, apiUrl]);
+  }, [selectedBusinessId, session?.access_token, apiUrl]);
 
   // Load selected business ID from localStorage on mount
   useEffect(() => {

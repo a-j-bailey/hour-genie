@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -62,11 +63,15 @@ export function IframeConfig() {
           }
         } else if (response.status !== 404) {
           // 404 is fine - no config exists yet
-          setError("Failed to load integration configuration");
+          const errorMessage = "Failed to load integration configuration";
+          setError(errorMessage);
+          toast.error(errorMessage);
         }
       } catch (err) {
         console.error("Error loading config:", err);
-        setError("Failed to load integration configuration");
+        const errorMessage = "Failed to load integration configuration";
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -110,11 +115,15 @@ export function IframeConfig() {
         setTimeout(() => setSuccess(null), 3000);
       } else {
         const errorData = await response.json();
-        setError(errorData.error || "Failed to save configuration");
+        const errorMessage = errorData.error || "Failed to save configuration";
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       console.error("Error saving config:", err);
-      setError("Failed to save configuration");
+      const errorMessage = "Failed to save configuration";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
