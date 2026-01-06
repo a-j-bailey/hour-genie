@@ -21,7 +21,8 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
     }
 
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-      apiVersion: "2024-12-18.acacia",
+      apiVersion: "2025-02-24.acacia",
+      httpClient: Stripe.createFetchHttpClient(),
     });
 
     // Get the raw body for signature verification
