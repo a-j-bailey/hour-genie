@@ -24,7 +24,7 @@ command = ""
 crons = ["0 9 * * *"]
 
 # Uncomment and set your account_id after first deploy
-# account_id = "1b2262cbd1eed800ce031a5db1d238fe"
+account_id = "1b2262cbd1eed800ce031a5db1d238fe"
 
 [vars]
 # You can set non-sensitive vars here, but use secrets for sensitive data
