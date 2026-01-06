@@ -107,8 +107,19 @@ export async function handleGet(request: Request, env: Env): Promise<Response> {
       }
     );
   } catch (error) {
+    console.error("Error in handleGet:", error);
+    const errorMessage = error instanceof Error ? error.message : "Internal server error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    if (errorStack) {
+      console.error("Error stack:", errorStack);
+    }
+    
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ 
+        error: "Internal server error",
+        message: errorMessage,
+      }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -237,8 +248,18 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
     );
   } catch (error) {
     console.error("Error in handlePost:", error);
+    const errorMessage = error instanceof Error ? error.message : "Internal server error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    if (errorStack) {
+      console.error("Error stack:", errorStack);
+    }
+    
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ 
+        error: "Internal server error",
+        message: errorMessage,
+      }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -330,8 +351,18 @@ export async function handlePut(request: Request, env: Env, businessId: string):
     );
   } catch (error) {
     console.error("Error in handlePut:", error);
+    const errorMessage = error instanceof Error ? error.message : "Internal server error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    if (errorStack) {
+      console.error("Error stack:", errorStack);
+    }
+    
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ 
+        error: "Internal server error",
+        message: errorMessage,
+      }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -396,8 +427,18 @@ export async function handleDelete(request: Request, env: Env, businessId: strin
     );
   } catch (error) {
     console.error("Error in handleDelete:", error);
+    const errorMessage = error instanceof Error ? error.message : "Internal server error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    if (errorStack) {
+      console.error("Error stack:", errorStack);
+    }
+    
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ 
+        error: "Internal server error",
+        message: errorMessage,
+      }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

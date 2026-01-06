@@ -74,9 +74,10 @@ interface Env {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
-    const path = url.pathname;
-    const method = request.method;
+    try {
+      const url = new URL(request.url);
+      const path = url.pathname;
+      const method = request.method;
 
     // Handle CORS preflight
     if (method === "OPTIONS") {
@@ -276,6 +277,30 @@ export default {
       JSON.stringify({ error: "Not found" }),
       { status: 404, headers: { "Content-Type": "application/json" } }
     );
+    } catch (error) {
+      // Top-level error handler - catches any unhandled errors
+      console.error("Unhandled error in worker:", error);
+      const errorMessage = error instanceof Error ? error.message : "Internal server error";
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
+      if (errorStack) {
+        console.error("Error stack:", errorStack);
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          error: "Internal server error",
+          message: errorMessage,
+        }),
+        { 
+          status: 500, 
+          headers: { 
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          } 
+        }
+      );
+    }
   },
 
   // Scheduled event handler for cron jobs
