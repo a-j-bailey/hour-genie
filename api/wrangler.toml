@@ -30,8 +30,8 @@ account_id = "1b2262cbd1eed800ce031a5db1d238fe"
 # You can set non-sensitive vars here, but use secrets for sensitive data
 # Use: wrangler secret put SECRET_NAME
 SUPABASE_URL = "https://lihgqzbulvmztacjwuup.supabase.co"
-STRIPE_MONTHLY_PAYMENT_LINK_ID = "plink_1SmQZxAX4klWmioiHFrWtHqU"
-STRIPE_ANNUAL_PAYMENT_LINK_ID = "plink_1SmQZxAX4klWmioihtzw3HXr"
+STRIPE_MONTHLY_PAYMENT_LINK_ID = "plink_1SlzrEAKZK3mEAtnPFGKCWup"
+STRIPE_ANNUAL_PAYMENT_LINK_ID = "plink_1SlztzAKZK3mEAtniH4fKKl0"
 SENDGRID_FROM_EMAIL = "adam@hourgenie.com"
 SENDGRID_REPLY_TO_EMAIL = "adam@hourgenie.com"
 
