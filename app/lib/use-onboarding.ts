@@ -14,7 +14,7 @@ interface OnboardingStatus {
  * User needs onboarding if they have no business OR no active subscription
  */
 export function useOnboardingStatus(): OnboardingStatus {
-  const { session } = useAuth();
+  const { session, loading: authLoading } = useAuth();
   const { businesses, loading: businessesLoading } = useBusiness();
   const [subscription, setSubscription] = useState<any>(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
@@ -23,6 +23,11 @@ export function useOnboardingStatus(): OnboardingStatus {
 
   useEffect(() => {
     const fetchSubscription = async () => {
+      // Don't mark as done loading if auth is still loading
+      if (authLoading) {
+        return;
+      }
+
       if (!session?.access_token) {
         setSubscriptionLoading(false);
         return;
@@ -47,12 +52,12 @@ export function useOnboardingStatus(): OnboardingStatus {
     };
 
     fetchSubscription();
-  }, [session?.access_token, apiUrl]);
+  }, [session?.access_token, authLoading, apiUrl]);
 
   const hasBusiness = businesses.length > 0;
   const hasSubscription = subscription && subscription.subscription_status === "active";
   const needsOnboarding = !hasBusiness || !hasSubscription;
-  const loading = businessesLoading || subscriptionLoading;
+  const loading = authLoading || businessesLoading || subscriptionLoading;
 
   return {
     needsOnboarding,
