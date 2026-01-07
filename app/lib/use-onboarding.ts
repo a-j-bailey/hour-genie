@@ -11,7 +11,7 @@ interface OnboardingStatus {
 
 /**
  * Hook to check if user needs onboarding
- * User needs onboarding if they have no business AND no subscription
+ * User needs onboarding if they have no business OR no active subscription
  */
 export function useOnboardingStatus(): OnboardingStatus {
   const { session } = useAuth();
@@ -51,7 +51,7 @@ export function useOnboardingStatus(): OnboardingStatus {
 
   const hasBusiness = businesses.length > 0;
   const hasSubscription = subscription && subscription.subscription_status === "active";
-  const needsOnboarding = !hasBusiness && !hasSubscription;
+  const needsOnboarding = !hasBusiness || !hasSubscription;
   const loading = businessesLoading || subscriptionLoading;
 
   return {
