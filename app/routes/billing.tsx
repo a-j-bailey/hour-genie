@@ -18,13 +18,18 @@ interface Subscription {
   id?: string;
   user_id?: string;
   stripe_customer_id: string;
+  stripe_subscription_id?: string;
   subscription_status: string;
   plan_name?: string | null;
+  price_amount?: number | null;
+  price_currency?: string;
+  billing_interval?: string | null;
+  current_period_end?: string | null;
   created_at?: string;
   updated_at?: string;
 }
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: "Billing - Hour Genie" },
     { name: "description", content: "Manage your subscription and billing" },
@@ -183,6 +188,22 @@ export default function Billing() {
     }
   };
 
+  const formatPrice = (amount?: number | null, currency?: string) => {
+    if (!amount) return null;
+    const formatted = (amount / 100).toFixed(2);
+    const currencySymbol = currency?.toUpperCase() === "USD" ? "$" : currency?.toUpperCase() || "";
+    return `${currencySymbol}${formatted}`;
+  };
+
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return null;
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; variant: "default" | "destructive" | "secondary" }> = {
       active: { label: "Active", variant: "default" },
@@ -195,16 +216,15 @@ export default function Billing() {
     };
 
     const config = statusConfig[status] || { label: status, variant: "secondary" };
-    
+
     return (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          config.variant === "default"
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.variant === "default"
             ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
             : config.variant === "destructive"
-            ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-            : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-        }`}
+              ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+              : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+          }`}
       >
         {config.label}
       </span>
@@ -256,9 +276,12 @@ export default function Billing() {
       {subscription ? (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Subscription
+            <CardTitle className="flex items-center gap-2 justify-between">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Subscription
+              </div>
+              {getStatusBadge(subscription.subscription_status)}
             </CardTitle>
             <CardDescription>
               View and manage your current subscription
@@ -266,14 +289,19 @@ export default function Billing() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-muted-foreground">Status</Label>
-                {getStatusBadge(subscription.subscription_status)}
-              </div>
-              {subscription.plan_name && (
+              {subscription.price_amount && (
                 <div className="flex items-center justify-between">
-                  <Label className="text-muted-foreground">Plan</Label>
-                  <span className="text-sm font-medium">{subscription.plan_name}</span>
+                  <Label className="text-muted-foreground">Price</Label>
+                  <span className="text-sm font-medium">
+                    {formatPrice(subscription.price_amount, subscription.price_currency)}
+                    {subscription.billing_interval && ` / ${subscription.billing_interval}`}
+                  </span>
+                </div>
+              )}
+              {subscription.current_period_end && subscription.subscription_status === "active" && (
+                <div className="flex items-center justify-between">
+                  <Label className="text-muted-foreground">Next Billing Date</Label>
+                  <span className="text-sm">{formatDate(subscription.current_period_end)}</span>
                 </div>
               )}
               {subscription.created_at && (

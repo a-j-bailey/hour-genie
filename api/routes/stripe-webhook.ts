@@ -80,6 +80,14 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
           const price = priceId ? await stripe.prices.retrieve(priceId) : null;
           const planName = price?.nickname || price?.product || "Unknown Plan";
 
+          // Extract billing details
+          const priceAmount = price?.unit_amount || null;
+          const priceCurrency = price?.currency || "usd";
+          const billingInterval = price?.recurring?.interval || null;
+          const currentPeriodEnd = subscription.current_period_end 
+            ? new Date(subscription.current_period_end * 1000).toISOString() 
+            : null;
+
           // Get user_id from client_reference_id, metadata, or customer metadata
           let userId = session.client_reference_id || session.metadata?.user_id;
           if (!userId && customerId) {
@@ -101,8 +109,13 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
               {
                 user_id: userId,
                 stripe_customer_id: customerId,
+                stripe_subscription_id: subscriptionId,
                 subscription_status: subscription.status,
                 plan_name: planName,
+                price_amount: priceAmount,
+                price_currency: priceCurrency,
+                billing_interval: billingInterval,
+                current_period_end: currentPeriodEnd,
                 updated_at: new Date().toISOString(),
               },
               {
@@ -127,10 +140,17 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
           ? subscription.customer
           : subscription.customer.id;
 
-        // Get plan name
+        // Get plan name and billing details
         const priceId = subscription.items.data[0]?.price.id;
         const price = priceId ? await stripe.prices.retrieve(priceId) : null;
         const planName = price?.nickname || price?.product || "Unknown Plan";
+        
+        const priceAmount = price?.unit_amount || null;
+        const priceCurrency = price?.currency || "usd";
+        const billingInterval = price?.recurring?.interval || null;
+        const currentPeriodEnd = subscription.current_period_end 
+          ? new Date(subscription.current_period_end * 1000).toISOString() 
+          : null;
 
         // Get user_id from customer metadata
         let userId: string | undefined;
@@ -150,8 +170,13 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
         const { error: updateError } = await supabase
           .from("subscriptions")
           .update({
+            stripe_subscription_id: subscription.id,
             subscription_status: subscription.status,
             plan_name: planName,
+            price_amount: priceAmount,
+            price_currency: priceCurrency,
+            billing_interval: billingInterval,
+            current_period_end: currentPeriodEnd,
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_customer_id", customerId);

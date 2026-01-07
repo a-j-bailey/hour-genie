@@ -15,8 +15,13 @@ export interface Subscription {
   id?: string;
   user_id?: string;
   stripe_customer_id: string;
+  stripe_subscription_id?: string;
   subscription_status: string;
   plan_name?: string | null;
+  price_amount?: number | null;
+  price_currency?: string;
+  billing_interval?: string | null;
+  current_period_end?: string | null;
   created_at?: string;
   updated_at?: string;
 }
