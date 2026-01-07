@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { Checkbox } from "~/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { useBusiness } from "~/lib/business-context";
 import { useAuth } from "~/lib/use-auth";
 import { Copy, Check } from "lucide-react";
@@ -61,17 +63,14 @@ export function IframeConfig() {
           } else {
             setStyle("expanded"); // Default to expanded
           }
-        } else if (response.status !== 404) {
-          // 404 is fine - no config exists yet
+        }
+      } catch (err) {
+        if (err instanceof Response && err.status != 404) {
+          console.error("Error loading config:", err);
           const errorMessage = "Failed to load integration configuration";
           setError(errorMessage);
           toast.error(errorMessage);
         }
-      } catch (err) {
-        console.error("Error loading config:", err);
-        const errorMessage = "Failed to load integration configuration";
-        setError(errorMessage);
-        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -180,7 +179,7 @@ export function IframeConfig() {
             <textarea
               readOnly
               value={getEmbedCode()}
-              className="w-full h-32 p-3 font-mono text-sm bg-muted rounded-md border resize-none"
+              className="w-full h-38 p-3 font-mono text-sm bg-muted rounded-md border resize-none"
             />
             <Button
               variant="outline"
@@ -215,45 +214,27 @@ export function IframeConfig() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Display Style</Label>
-              <div className="space-y-2">
+              <RadioGroup value={style} onValueChange={(value) => setStyle(value as "expanded" | "condensed")}>
                 <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="style-expanded"
-                    name="display-style"
-                    value="expanded"
-                    checked={style === "expanded"}
-                    onChange={(e) => setStyle(e.target.value as "expanded" | "condensed")}
-                    className="h-4 w-4"
-                  />
+                  <RadioGroupItem value="expanded" id="style-expanded" />
                   <Label htmlFor="style-expanded" className="font-normal cursor-pointer">
                     Expanded (show all days)
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="style-condensed"
-                    name="display-style"
-                    value="condensed"
-                    checked={style === "condensed"}
-                    onChange={(e) => setStyle(e.target.value as "expanded" | "condensed")}
-                    className="h-4 w-4"
-                  />
+                  <RadioGroupItem value="condensed" id="style-condensed" />
                   <Label htmlFor="style-condensed" className="font-normal cursor-pointer">
                     Condensed (group consecutive days)
                   </Label>
                 </div>
-              </div>
+              </RadioGroup>
             </div>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
+                <Checkbox
                   id="show-separators"
                   checked={showSeparators}
-                  onChange={(e) => setShowSeparators(e.target.checked)}
-                  className="h-4 w-4"
+                  onCheckedChange={(checked) => setShowSeparators(checked === true)}
                 />
                 <Label htmlFor="show-separators">Show day separators</Label>
               </div>

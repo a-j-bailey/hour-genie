@@ -9,6 +9,7 @@ import { useAuth } from "~/lib/use-auth";
 import {
   CheckCircle2,
   Code,
+  SquareCode,
 } from "lucide-react";
 
 export function meta({}: Route.MetaArgs) {
@@ -34,7 +35,7 @@ const integrations: Integration[] = [
     id: "iframe",
     name: "iframe",
     description: "Embed business hours widget on any website using an iframe",
-    icon: Code,
+    icon: SquareCode,
     status: "OFFICIAL",
     category: "website",
   },

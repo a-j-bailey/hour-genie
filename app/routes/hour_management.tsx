@@ -6,6 +6,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { Checkbox } from "~/components/ui/checkbox";
 import { Separator } from "~/components/ui/separator";
 import {
     Dialog,
@@ -670,33 +671,29 @@ function HourManagementContent() {
                                                         <div className="flex items-center gap-4 py-4 flex-wrap">
                                                             <div className="w-24 font-medium">{dayInfo?.name}</div>
                                                             <div className="flex items-center gap-2">
-                                                                <input
-                                                                    type="checkbox"
+                                                                <Checkbox
                                                                     id={`default-open-${day.day_of_week}`}
                                                                     checked={day.is_open}
-                                                                    onChange={(e) =>
+                                                                    onCheckedChange={(checked) =>
                                                                         updateDefaultDay(day.day_of_week, {
-                                                                            is_open: e.target.checked,
-                                                                            is_open_24_7: e.target.checked ? day.is_open_24_7 : false,
+                                                                            is_open: checked === true,
+                                                                            is_open_24_7: checked === true ? day.is_open_24_7 : false,
                                                                         })
                                                                     }
-                                                                    className="h-4 w-4"
                                                                 />
                                                                 <Label htmlFor={`default-open-${day.day_of_week}`}>Open</Label>
                                                             </div>
                                                             {day.is_open && (
                                                                 <>
                                                                     <div className="flex items-center gap-2">
-                                                                        <input
-                                                                            type="checkbox"
+                                                                        <Checkbox
                                                                             id={`default-24-7-${day.day_of_week}`}
                                                                             checked={day.is_open_24_7}
-                                                                            onChange={(e) =>
+                                                                            onCheckedChange={(checked) =>
                                                                                 updateDefaultDay(day.day_of_week, {
-                                                                                    is_open_24_7: e.target.checked,
+                                                                                    is_open_24_7: checked === true,
                                                                                 })
                                                                             }
-                                                                            className="h-4 w-4"
                                                                         />
                                                                         <Label htmlFor={`default-24-7-${day.day_of_week}`}>24/7</Label>
                                                                     </div>
@@ -862,19 +859,17 @@ function HourManagementContent() {
                                                             >
                                                                 <div className="w-24 font-medium">{dayInfo?.name}</div>
                                                                 <div className="flex items-center gap-2">
-                                                                    <input
-                                                                        type="checkbox"
+                                                                    <Checkbox
                                                                         id={`override-open-${day.day_of_week}`}
                                                                         checked={day.is_open}
-                                                                        onChange={(e) =>
+                                                                        onCheckedChange={(checked) =>
                                                                             updateOverrideDay(day.day_of_week, {
-                                                                                is_open: e.target.checked,
-                                                                                is_open_24_7: e.target.checked
+                                                                                is_open: checked === true,
+                                                                                is_open_24_7: checked === true
                                                                                     ? day.is_open_24_7
                                                                                     : false,
                                                                             })
                                                                         }
-                                                                        className="h-4 w-4"
                                                                     />
                                                                     <Label htmlFor={`override-open-${day.day_of_week}`}>
                                                                         Open
@@ -883,16 +878,14 @@ function HourManagementContent() {
                                                                 {day.is_open && (
                                                                     <>
                                                                         <div className="flex items-center gap-2">
-                                                                            <input
-                                                                                type="checkbox"
+                                                                            <Checkbox
                                                                                 id={`override-24-7-${day.day_of_week}`}
                                                                                 checked={day.is_open_24_7}
-                                                                                onChange={(e) =>
+                                                                                onCheckedChange={(checked) =>
                                                                                     updateOverrideDay(day.day_of_week, {
-                                                                                        is_open_24_7: e.target.checked,
+                                                                                        is_open_24_7: checked === true,
                                                                                     })
                                                                                 }
-                                                                                className="h-4 w-4"
                                                                             />
                                                                             <Label htmlFor={`override-24-7-${day.day_of_week}`}>
                                                                                 24/7
@@ -1020,19 +1013,17 @@ function HourManagementContent() {
                                                             >
                                                                 <div className="w-24 font-medium">{dayInfo?.name}</div>
                                                                 <div className="flex items-center gap-2">
-                                                                    <input
-                                                                        type="checkbox"
+                                                                    <Checkbox
                                                                         id={`edit-override-open-${day.day_of_week}`}
                                                                         checked={day.is_open}
-                                                                        onChange={(e) =>
+                                                                        onCheckedChange={(checked) =>
                                                                             updateOverrideDay(day.day_of_week, {
-                                                                                is_open: e.target.checked,
-                                                                                is_open_24_7: e.target.checked
+                                                                                is_open: checked === true,
+                                                                                is_open_24_7: checked === true
                                                                                     ? day.is_open_24_7
                                                                                     : false,
                                                                             })
                                                                         }
-                                                                        className="h-4 w-4"
                                                                     />
                                                                     <Label htmlFor={`edit-override-open-${day.day_of_week}`}>
                                                                         Open
@@ -1041,16 +1032,14 @@ function HourManagementContent() {
                                                                 {day.is_open && (
                                                                     <>
                                                                         <div className="flex items-center gap-2">
-                                                                            <input
-                                                                                type="checkbox"
+                                                                            <Checkbox
                                                                                 id={`edit-override-24-7-${day.day_of_week}`}
                                                                                 checked={day.is_open_24_7}
-                                                                                onChange={(e) =>
+                                                                                onCheckedChange={(checked) =>
                                                                                     updateOverrideDay(day.day_of_week, {
-                                                                                        is_open_24_7: e.target.checked,
+                                                                                        is_open_24_7: checked === true,
                                                                                     })
                                                                                 }
-                                                                                className="h-4 w-4"
                                                                             />
                                                                             <Label htmlFor={`edit-override-24-7-${day.day_of_week}`}>
                                                                                 24/7
