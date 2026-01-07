@@ -263,7 +263,7 @@ export function IframeConfig() {
               <p className="text-sm text-muted-foreground">
                 Save to see your changes reflected in the preview below.
               </p>
-              <div className="border rounded-md p-4 bg-muted/50">
+              <div className="border rounded-md p-4 bg-white dark:bg-gray-950 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px]">
                 {selectedBusinessId && (
                   <iframe
                     key={iframeKey}
@@ -272,6 +272,7 @@ export function IframeConfig() {
                     height="400"
                     style={{ border: "none", borderRadius: "4px" }}
                     title="Widget Preview"
+                    allowTransparency={true}
                   />
                 )}
               </div>
