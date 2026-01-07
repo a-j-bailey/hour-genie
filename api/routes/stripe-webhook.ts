@@ -80,8 +80,8 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
           const price = priceId ? await stripe.prices.retrieve(priceId) : null;
           const planName = price?.nickname || price?.product || "Unknown Plan";
 
-          // Get user_id from metadata or customer metadata
-          let userId = session.metadata?.user_id;
+          // Get user_id from client_reference_id, metadata, or customer metadata
+          let userId = session.client_reference_id || session.metadata?.user_id;
           if (!userId && customerId) {
             const customer = await stripe.customers.retrieve(customerId);
             if (!customer.deleted && typeof customer !== "string") {
@@ -90,7 +90,7 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
           }
 
           if (!userId) {
-            console.error("No user_id found in session or customer metadata");
+            console.error("No user_id found in session client_reference_id, metadata, or customer metadata");
             break;
           }
 

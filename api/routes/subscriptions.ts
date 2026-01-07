@@ -107,7 +107,6 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
     }
 
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-      apiVersion: "2025-02-24.acacia",
       httpClient: Stripe.createFetchHttpClient(),
     });
 
@@ -154,10 +153,11 @@ export async function handlePost(request: Request, env: Env): Promise<Response> 
       );
     }
 
-    // Retrieve and return payment link URL
+    // Retrieve and return payment link URL with client_reference_id and prefilled email
     const paymentLink = await stripe.paymentLinks.retrieve(paymentLinkId);
+    const urlWithParams = `${paymentLink.url}?client_reference_id=${encodeURIComponent(user.userId)}&prefilled_email=${encodeURIComponent(user.email)}`;
     return new Response(
-      JSON.stringify({ url: paymentLink.url }),
+      JSON.stringify({ url: urlWithParams }),
       {
         status: 200,
         headers: {
