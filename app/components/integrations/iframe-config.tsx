@@ -29,6 +29,7 @@ export function IframeConfig() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [iframeKey, setIframeKey] = useState(0);
 
   // Load existing integration config
   useEffect(() => {
@@ -112,6 +113,8 @@ export function IframeConfig() {
       if (response.ok) {
         setSuccess("Configuration saved successfully!");
         setTimeout(() => setSuccess(null), 3000);
+        // Refresh the iframe preview
+        setIframeKey((prev) => prev + 1);
       } else {
         const errorData = await response.json();
         const errorMessage = errorData.error || "Failed to save configuration";
@@ -246,12 +249,33 @@ export function IframeConfig() {
               id="css-input"
               value={css}
               onChange={(e) => setCss(e.target.value)}
-              placeholder=".hour-genie-widget {&#10;  font-family: 'Arial', sans-serif;&#10;  color: #333;&#10;}&#10;.hour-genie-widget h3 {&#10;  color: #007bff;&#10;}"
+              placeholder=".hour-genie-widget {&#10;  font-family: 'Arial', sans-serif;&#10;  color: #333;&#10;}&#10;.hour-genie-widget td:last-child {&#10;  color: #666;&#10;}"
               className="w-full h-64 p-3 font-mono text-sm border rounded-md resize-y"
             />
             <p className="text-sm text-muted-foreground">
               Add custom CSS to style the widget. The widget uses the class <code className="px-1 py-0.5 bg-muted rounded">.hour-genie-widget</code>
             </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Preview</Label>
+              <p className="text-sm text-muted-foreground">
+                Save to see your changes reflected in the preview below.
+              </p>
+              <div className="border rounded-md p-4 bg-muted/50">
+                {selectedBusinessId && (
+                  <iframe
+                    key={iframeKey}
+                    src={`${apiUrl}/api/embed/hours?id=${selectedBusinessId}`}
+                    width="100%"
+                    height="400"
+                    style={{ border: "none", borderRadius: "4px" }}
+                    title="Widget Preview"
+                  />
+                )}
+              </div>
+            </div>
           </div>
 
           {error && (
