@@ -63,7 +63,7 @@ function SidebarTitle() {
     <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:p-0!">
       <div className="relative flex items-center justify-center rounded-lg">
         <img
-          src="/imgs/logos/hg_logo.png"
+          src="/hourgenie.png"
           alt="HourGenie"
           className="size-8 object-contain rounded-lg"
         />

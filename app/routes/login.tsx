@@ -96,7 +96,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-950">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-gray-950">
+      <Link to="/" className="flex items-center gap-2 mb-8 text-lg font-semibold text-white">
+        <img
+          src="/hourgenie_white.png"
+          alt="Hour Genie"
+          className="h-8 w-8 object-contain"
+        />
+        <span>Hour Genie</span>
+      </Link>
       <Card className="w-full max-w-md bg-gray-200">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 import { Badge } from "~/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import { useAuth } from "~/lib/use-auth";
-import { Sparkles, CalendarClock, Gift, Code, MessageSquare, Check } from "lucide-react";
+import { CalendarClock, Gift, Code, MessageSquare, Check } from "lucide-react";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -24,7 +24,11 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             <Link to="/" className="flex items-center gap-2 text-lg font-semibold text-white">
-              <Sparkles className="h-6 w-6" />
+              <img
+                src="/hourgenie_white.png"
+                alt="Hour Genie"
+                className="h-6 w-6 object-contain"
+              />
               <span>Hour Genie</span>
             </Link>
             <div className="ml-4">

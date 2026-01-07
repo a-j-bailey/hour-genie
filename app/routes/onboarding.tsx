@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import type { Route } from "./+types/onboarding";
 import { useAuth } from "~/lib/use-auth";
@@ -299,7 +299,15 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-950">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-gray-950">
+      <Link to="/" className="flex items-center gap-2 mb-8 text-lg font-semibold text-white">
+        <img
+          src="/hourgenie_white.png"
+          alt="Hour Genie"
+          className="h-8 w-8 object-contain"
+        />
+        <span>Hour Genie</span>
+      </Link>
       <Card className="w-full max-w-2xl bg-gray-200">
         <CardHeader className="space-y-4">
           <div className="flex items-center justify-between">
