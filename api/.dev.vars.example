@@ -1,0 +1,16 @@
+# Copy this file to `.dev.vars` in this directory for local `wrangler dev`.
+# `.dev.vars` is gitignored. Do not commit real values.
+# In production, set these with `wrangler secret put` (see api/README.md).
+
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+STRIPE_MONTHLY_PRICE_ID=your_monthly_price_id
+STRIPE_ANNUAL_PRICE_ID=your_annual_price_id
+STRIPE_MONTHLY_PAYMENT_LINK_ID=your_monthly_payment_link_id
+STRIPE_ANNUAL_PAYMENT_LINK_ID=your_annual_payment_link_id
+SENDGRID_API_KEY=your_sendgrid_api_key
+SENDGRID_FROM_EMAIL=your_from_email@example.com
+SENDGRID_REPLY_TO_EMAIL=your_reply_to@example.com
+XAI_API_KEY=your_xai_api_key

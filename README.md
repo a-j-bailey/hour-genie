@@ -34,13 +34,15 @@ Your application will be available at `http://localhost:5173`.
 
 ### Environment Variables
 
-Create a `.env` file in the project root for local development:
+Copy `.env.example` to `.env` in the project root for local development:
 
 ```env
-VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 VITE_API_URL=http://localhost:8787
 ```
+
+Do not commit `.env`. Stripe payment link IDs (`STRIPE_MONTHLY_PAYMENT_LINK_ID`, `STRIPE_ANNUAL_PAYMENT_LINK_ID`) and other Worker secrets belong in `api/.dev.vars` locally (copy from `api/.dev.vars.example`) or in Cloudflare secrets for deploy — never in committed config.
 
 > **Note**: For local development, make sure your API is running locally (see [api/README.md](./api/README.md) for API setup).
 
@@ -77,6 +79,7 @@ This project consists of two parts that need to be deployed separately:
    ```bash
    wrangler login
    ```
+   Wrangler uses the account from this login / the Cloudflare dashboard. Do not commit `account_id` in `wrangler.toml`.
 
 ### Step 1: Deploy the Backend API
 
@@ -214,7 +217,22 @@ Simply push to your production branch - Cloudflare will automatically build and 
 
 ### Backend (Cloudflare Workers)
 
-See [api/README.md](./api/README.md) for backend environment variables.
+Set these with `wrangler secret put` (or in `api/.dev.vars` for local development). See [api/README.md](./api/README.md) and `api/.dev.vars.example`.
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `SUPABASE_URL` | Your Supabase project URL | Yes |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (never expose client-side) | Yes |
+| `STRIPE_SECRET_KEY` | Stripe secret key | If using Stripe |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | If using Stripe |
+| `STRIPE_MONTHLY_PRICE_ID` | Stripe price ID for monthly plan | If using Stripe |
+| `STRIPE_ANNUAL_PRICE_ID` | Stripe price ID for annual plan | If using Stripe |
+| `STRIPE_MONTHLY_PAYMENT_LINK_ID` | Stripe Payment Link ID for monthly plan | If using Stripe |
+| `STRIPE_ANNUAL_PAYMENT_LINK_ID` | Stripe Payment Link ID for annual plan | If using Stripe |
+| `SENDGRID_API_KEY` | SendGrid API key | If using email |
+| `SENDGRID_FROM_EMAIL` | From address for outbound email | If using email |
+| `SENDGRID_REPLY_TO_EMAIL` | Reply-to address for outbound email | If using email |
+| `XAI_API_KEY` | xAI API key | If using AI parsing |
 
 ## Project Structure
 

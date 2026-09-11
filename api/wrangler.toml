@@ -1,14 +1,21 @@
 # Cloudflare Workers configuration for Hour Genie API
-# 
+#
 # To deploy:
 # 1. Install Wrangler CLI: npm install -g wrangler
 # 2. Login: wrangler login
-# 3. Update name and account_id below
+#    Wrangler uses the Cloudflare account from your login / dashboard.
+#    Do not commit account_id.
+# 3. Update the worker name below if needed
 # 4. Deploy from the /api directory: wrangler deploy
 #
-# Set environment variables using:
-# wrangler secret put SUPABASE_URL
-# wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+# Secrets (never commit real values). See .env.example, api/.dev.vars.example,
+# and api/README.md for the full list:
+#   wrangler secret put SUPABASE_URL
+#   wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+#   wrangler secret put STRIPE_MONTHLY_PAYMENT_LINK_ID
+#   wrangler secret put STRIPE_ANNUAL_PAYMENT_LINK_ID
+#   wrangler secret put SENDGRID_FROM_EMAIL
+#   wrangler secret put SENDGRID_REPLY_TO_EMAIL
 
 name = "hour-genie-api"
 main = "worker.ts"
@@ -23,15 +30,10 @@ command = ""
 [triggers]
 crons = ["0 9 * * *"]
 
-# Uncomment and set your account_id after first deploy
-account_id = "1b2262cbd1eed800ce031a5db1d238fe"
+# account_id is not committed. After `wrangler login`, Wrangler uses the
+# account from your Cloudflare session / dashboard. Set it locally only if
+# you have multiple accounts and Wrangler cannot infer it.
 
-[vars]
-# You can set non-sensitive vars here, but use secrets for sensitive data
-# Use: wrangler secret put SECRET_NAME
-SUPABASE_URL = "https://lihgqzbulvmztacjwuup.supabase.co"
-STRIPE_MONTHLY_PAYMENT_LINK_ID = "plink_1SlzrEAKZK3mEAtnPFGKCWup"
-STRIPE_ANNUAL_PAYMENT_LINK_ID = "plink_1SlztzAKZK3mEAtniH4fKKl0"
-SENDGRID_FROM_EMAIL = "adam@hourgenie.com"
-SENDGRID_REPLY_TO_EMAIL = "adam@hourgenie.com"
-
+# Keep [vars] free of secrets and account-specific IDs (Stripe payment links,
+# Supabase URLs, emails). Set those with `wrangler secret put` or in
+# api/.dev.vars for local development.
