@@ -95,10 +95,10 @@ CREATE TRIGGER update_operating_hours_updated_at
 
 ### Client-Side (`.env` file in project root)
 
-Create a `.env` file in the root of your project:
+Create a `.env` file in the root of your project (copy from `.env.example`):
 
 ```env
-VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 VITE_API_URL=your_cloudflare_workers_api_url
 ```

@@ -5,11 +5,12 @@
  * Deploy this to Cloudflare Workers using:
  *   wrangler deploy
  * 
- * Make sure to set the following environment variables in Cloudflare Workers:
+ * Make sure to set secrets in Cloudflare Workers (never commit real values):
  * - SUPABASE_URL: Your Supabase project URL
  * - SUPABASE_SERVICE_ROLE_KEY: Your Supabase service role key
- * 
- * For local development, environment variables are loaded from .env.local.
+ * - STRIPE_MONTHLY_PAYMENT_LINK_ID / STRIPE_ANNUAL_PAYMENT_LINK_ID
+ *
+ * For local development, load secrets from api/.dev.vars (see .dev.vars.example).
  */
 
 import {

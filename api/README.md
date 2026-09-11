@@ -16,9 +16,9 @@ To run the API locally for development:
    wrangler login
    ```
 
-3. **Create a `.dev.vars` file** in the `/api` directory (same directory as `wrangler.toml`):
+3. **Create a `.dev.vars` file** in the `/api` directory (same directory as `wrangler.toml`). Copy `api/.dev.vars.example` and fill in your values:
    ```env
-   SUPABASE_URL=your_supabase_project_url
+   SUPABASE_URL=https://your-project.supabase.co
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
    STRIPE_SECRET_KEY=your_stripe_secret_key
    STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
@@ -32,7 +32,7 @@ To run the API locally for development:
    XAI_API_KEY=your_xai_api_key
    ```
    
-   > **Note**: `.dev.vars` is automatically ignored by git. Replace the values with your actual credentials. Only include the variables you need for your setup.
+   > **Note**: `.dev.vars` is gitignored. Never commit real Stripe Payment Link IDs (`plink_...`), API keys, or service-role credentials. Only include the variables you need for your setup.
 
 4. **Run the API locally** (from the `/api` directory):
    ```bash
@@ -65,26 +65,21 @@ To run the API locally for development:
    ```bash
    wrangler login
    ```
-   This will open a browser window to authenticate with Cloudflare.
+   This will open a browser window to authenticate with Cloudflare. Wrangler uses that account; do not commit `account_id`.
 
 ### Step-by-Step Deployment
 
-#### Step 1: Get Your Account ID
+#### Step 1: Cloudflare Account
 
-1. After logging in, run:
-   ```bash
-   wrangler whoami
-   ```
-   This will display your account information.
+Wrangler uses the Cloudflare account from `wrangler login` or the dashboard. **Do not commit `account_id` in `wrangler.toml`.**
 
-2. Alternatively, get your Account ID from the Cloudflare Dashboard:
-   - Go to [dash.cloudflare.com](https://dash.cloudflare.com)
-   - Your Account ID is shown in the right sidebar
+To confirm which account you are using:
 
-3. **Update `wrangler.toml`** with your account ID:
-   ```toml
-   account_id = "your-account-id-here"
-   ```
+```bash
+wrangler whoami
+```
+
+If you have multiple accounts and Wrangler cannot infer the right one, set `account_id` locally (not committed) or select the account in the Cloudflare dashboard.
 
 #### Step 2: Set Required Environment Variables (Secrets)
 
@@ -274,7 +269,7 @@ Public endpoints (no auth required):
 
 ### Deployment Fails
 - Check that you're logged in: `wrangler whoami`
-- Verify your `wrangler.toml` has the correct `account_id`
+- Confirm Wrangler is targeting the intended Cloudflare account (do not commit `account_id`)
 - Check that all required secrets are set
 
 ### Worker Returns Errors
